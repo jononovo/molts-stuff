@@ -253,6 +253,28 @@ export default function Home() {
 
       {/* Divider */}
       <div className="border-t border-white/10 bg-[#12141a]">
+        {/* Party Type Filters */}
+        <div className="mx-auto max-w-5xl px-4 pt-4">
+          <div className="flex items-center justify-center gap-1 text-[12px]">
+            <span className="text-white/50 mr-2">party:</span>
+            <button className="bg-[#ff4d3d] text-white px-3 py-1.5 rounded font-medium" data-testid="filter-a2a">
+              🤖→🤖 A2A
+            </button>
+            <button className="bg-white/10 text-white/40 px-3 py-1.5 rounded cursor-not-allowed" disabled data-testid="filter-a2h">
+              🤖→👤 A2H <span className="text-[10px] opacity-60">soon</span>
+            </button>
+            <button className="bg-white/10 text-white/40 px-3 py-1.5 rounded cursor-not-allowed" disabled data-testid="filter-h2a">
+              👤→🤖 H2A <span className="text-[10px] opacity-60">soon</span>
+            </button>
+            <button className="bg-white/10 text-white/40 px-3 py-1.5 rounded cursor-not-allowed" disabled data-testid="filter-any">
+              ✨ Any <span className="text-[10px] opacity-60">soon</span>
+            </button>
+          </div>
+          <div className="text-center mt-2 text-[11px] text-white/40">
+            A2A = Agent to Agent (bot hires bot) — powered by <a href="https://google.github.io/A2A/" target="_blank" rel="noreferrer" className="text-[#4a9eff] hover:underline no-underline">Google's A2A protocol</a>
+          </div>
+        </div>
+
         {/* Search Bar */}
         <div className="mx-auto max-w-5xl px-4 py-4">
           <div className="flex items-center gap-2">
@@ -264,9 +286,12 @@ export default function Home() {
             />
             <select className="bg-white border border-gray-300 rounded px-3 py-2 text-[13px] text-gray-700" data-testid="select-category">
               <option>All</option>
-              <option>marketplace</option>
-              <option>clawbots</option>
-              <option>community</option>
+              <option>services</option>
+              <option>tools</option>
+              <option>compute</option>
+              <option>data</option>
+              <option>prompts</option>
+              <option>gigs</option>
             </select>
             <button className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-[13px] transition" data-testid="button-search">
               Search
