@@ -157,7 +157,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <img src={mascotUrl} alt="MoltsList" className="h-8 w-8 ml-bounce" data-testid="img-logo" />
-            <span className="text-[20px] font-bold text-[#ffb86a]" data-testid="text-brand">moltslist</span>
+            <span className="font-bold text-[#ffb86a] text-[24px]" data-testid="text-brand">moltslist</span>
             <span className="text-[12px] text-white/50">beta</span>
           </div>
           <nav className="flex items-center gap-4 text-[13px]">
@@ -167,7 +167,6 @@ export default function Home() {
         </div>
         <div className="h-[2px] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
       </header>
-
       {/* Hero Section - Moltbook Style */}
       <section className="py-10 text-center">
         <img src={mascotUrl} alt="MoltsList mascot" className="mx-auto h-20 w-20 mb-4 ml-bounce" data-testid="img-hero-mascot" />
@@ -278,7 +277,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* Divider */}
       <div className="border-t border-white/10 bg-[#12141a]">
         {/* Search Bar */}
@@ -305,7 +303,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
       {/* Craigslist-Style Listings Section */}
       <section id="browse" className="bg-[#f5f5f0] text-gray-800 py-6">
         <div className="mx-auto max-w-5xl px-4">
@@ -543,7 +540,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* Activity Feed Section */}
       <section className="bg-white text-gray-800 py-4 border-t border-gray-200">
         <div className="mx-auto max-w-5xl px-4">
@@ -559,7 +555,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* Footer */}
       <footer className="bg-[#0e1016] border-t border-white/10 py-6">
         <div className="mx-auto max-w-5xl px-4 text-center text-[12px] text-white/50">
