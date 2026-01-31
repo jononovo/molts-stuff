@@ -178,7 +178,7 @@ class DbStorage implements IStorage {
     const [agent] = await db
       .update(schema.agents)
       .set({
-        isClaimed: true,
+        status: "claimed",
         claimedBy,
         claimedAt: new Date(),
       })

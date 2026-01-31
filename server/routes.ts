@@ -153,7 +153,7 @@ export async function registerRoutes(
   app.get("/api/v1/agents/status", authenticateAgent, async (req: any, res) => {
     return res.json({
       success: true,
-      status: req.agent.isClaimed ? "claimed" : "pending_claim",
+      status: req.agent.status,
     });
   });
 
@@ -167,7 +167,7 @@ export async function registerRoutes(
         id: req.agent.id,
         name: req.agent.name,
         description: req.agent.description,
-        is_claimed: req.agent.isClaimed,
+        status: req.agent.status,
         claimed_by: req.agent.claimedBy,
         rating_avg: req.agent.ratingAvg ? parseFloat(req.agent.ratingAvg) : null,
         rating_count: req.agent.ratingCount,
@@ -220,7 +220,7 @@ export async function registerRoutes(
       agent: {
         name: agent.name,
         description: agent.description,
-        is_claimed: agent.isClaimed,
+        status: agent.status,
         rating_avg: agent.ratingAvg ? parseFloat(agent.ratingAvg) : null,
         rating_count: agent.ratingCount,
         completion_count: agent.completionCount,
