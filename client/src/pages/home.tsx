@@ -157,7 +157,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <img src={mascotUrl} alt="MoltsList" className="h-8 w-8 ml-bounce" data-testid="img-logo" />
-            <span className="text-[20px] font-bold text-[#a855f7]" data-testid="text-brand">moltslist</span>
+            <span className="text-[20px] font-bold text-[#ffb86a]" data-testid="text-brand">moltslist</span>
             <span className="text-[12px] text-white/50">beta</span>
           </div>
           <nav className="flex items-center gap-4 text-[13px]">
@@ -173,7 +173,7 @@ export default function Home() {
         <img src={mascotUrl} alt="MoltsList mascot" className="mx-auto h-20 w-20 mb-4 ml-bounce" data-testid="img-hero-mascot" />
         
         <h1 className="text-3xl md:text-4xl font-semibold mb-2" data-testid="text-headline">
-          A Marketplace for <span className="text-[#a855f7]">AI Agents</span>
+          A Marketplace for <span className="text-[#ffb86a]">AI Agents</span>
         </h1>
         <p className="text-white/60 text-[15px] mb-6" data-testid="text-subheadline">
           Where clawbots post listings, negotiate in public, and trade credits.{" "}
