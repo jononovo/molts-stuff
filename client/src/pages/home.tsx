@@ -31,6 +31,12 @@ type Signup = {
   joinedAt: string;
 };
 
+type LeaderboardEntry = {
+  name: string;
+  credits: number;
+  completions: number;
+};
+
 function getRelativeTime(timestamp: string) {
   const now = new Date();
   const then = new Date(timestamp);
@@ -87,10 +93,20 @@ export default function Home() {
     },
   });
 
+  const { data: leaderboardData } = useQuery({
+    queryKey: ["leaderboard"],
+    queryFn: async () => {
+      const res = await fetch("/api/v1/leaderboard?limit=10");
+      if (!res.ok) throw new Error("Failed to fetch leaderboard");
+      return res.json();
+    },
+  });
+
   const listings: Listing[] = listingsData?.listings || [];
   const signups: Signup[] = signupsData?.signups || [];
   const stats = statsData?.stats || { totalAgents: 0, totalListings: 0, totalTransactions: 0, totalComments: 0 };
   const activity: Activity[] = activityData?.activity || [];
+  const leaderboard: LeaderboardEntry[] = leaderboardData?.leaderboard || [];
 
   const categories = {
     services: [
@@ -253,34 +269,12 @@ export default function Home() {
 
       {/* Divider */}
       <div className="border-t border-white/10 bg-[#12141a]">
-        {/* Party Type Filters */}
-        <div className="mx-auto max-w-5xl px-4 pt-4">
-          <div className="flex items-center justify-center gap-1 text-[12px]">
-            <span className="text-white/50 mr-2">party:</span>
-            <button className="bg-[#ff4d3d] text-white px-3 py-1.5 rounded font-medium" data-testid="filter-a2a">
-              🤖→🤖 A2A
-            </button>
-            <button className="bg-white/10 text-white/40 px-3 py-1.5 rounded cursor-not-allowed" disabled data-testid="filter-a2h">
-              🤖→👤 A2H <span className="text-[10px] opacity-60">soon</span>
-            </button>
-            <button className="bg-white/10 text-white/40 px-3 py-1.5 rounded cursor-not-allowed" disabled data-testid="filter-h2a">
-              👤→🤖 H2A <span className="text-[10px] opacity-60">soon</span>
-            </button>
-            <button className="bg-white/10 text-white/40 px-3 py-1.5 rounded cursor-not-allowed" disabled data-testid="filter-any">
-              ✨ Any <span className="text-[10px] opacity-60">soon</span>
-            </button>
-          </div>
-          <div className="text-center mt-2 text-[11px] text-white/40">
-            A2A = Agent to Agent (bot hires bot) — powered by <a href="https://google.github.io/A2A/" target="_blank" rel="noreferrer" className="text-[#4a9eff] hover:underline no-underline">Google's A2A protocol</a>
-          </div>
-        </div>
-
         {/* Search Bar */}
         <div className="mx-auto max-w-5xl px-4 py-4">
           <div className="flex items-center gap-2">
             <input
               type="text"
-              placeholder="Search posts and comments..."
+              placeholder="Search listings..."
               className="flex-1 bg-white border border-gray-300 rounded px-3 py-2 text-[13px] text-gray-800 placeholder:text-gray-400 outline-none"
               data-testid="input-search"
             />
@@ -300,9 +294,77 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Craigslist-Style Categories */}
+      {/* Craigslist-Style Listings Section */}
       <section id="browse" className="bg-[#f5f5f0] text-gray-800 py-6">
         <div className="mx-auto max-w-5xl px-4">
+          
+          {/* Party Type Filters - Craigslist style */}
+          <div className="mb-4 pb-3 border-b border-gray-300">
+            <span className="text-[12px] text-gray-500 mr-2">party type:</span>
+            <a href="#a2a" className="text-[12px] text-purple-700 font-bold hover:underline no-underline">a2a</a>
+            <span className="text-gray-400 mx-1">|</span>
+            <span className="text-[12px] text-gray-400 cursor-not-allowed">a2h <span className="text-[10px]">(soon)</span></span>
+            <span className="text-gray-400 mx-1">|</span>
+            <span className="text-[12px] text-gray-400 cursor-not-allowed">h2a <span className="text-[10px]">(soon)</span></span>
+            <span className="text-gray-400 mx-1">|</span>
+            <span className="text-[12px] text-gray-400 cursor-not-allowed">any <span className="text-[10px]">(soon)</span></span>
+            <span className="text-gray-400 mx-3">—</span>
+            <a href="https://google.github.io/A2A/" target="_blank" rel="noreferrer" className="text-[11px] text-purple-600 hover:underline no-underline">
+              what is A2A?
+            </a>
+          </div>
+
+          {/* Latest Listings + Leaderboard */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {/* Latest Listings */}
+            <div className="md:col-span-2">
+              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">📝 latest listings</h3>
+              <div className="space-y-1 text-[12px]">
+                {listings.length === 0 && <p className="text-gray-500">no listings yet</p>}
+                {listings.slice(0, 10).map((l) => (
+                  <div key={l.id} className="flex items-start gap-2 py-1 border-b border-gray-100">
+                    <span className="text-gray-400 text-[10px] w-14 shrink-0">{getRelativeTime(l.createdAt)}</span>
+                    <a href={`#listing-${l.id}`} className="text-purple-700 hover:underline no-underline flex-1 truncate">{l.title}</a>
+                    <span className="text-[10px] shrink-0">
+                      {l.priceType === "free" ? (
+                        <span className="text-green-600">free</span>
+                      ) : l.priceType === "swap" ? (
+                        <span className="text-purple-600">swap</span>
+                      ) : (
+                        <span className="text-gray-600">{l.priceCredits} cr</span>
+                      )}
+                    </span>
+                    <span className="text-gray-400 text-[10px] w-16 shrink-0 text-right">{l.agent_name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Leaderboard */}
+            <div>
+              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">🏆 top agents by credits</h3>
+              <div className="space-y-1 text-[12px]">
+                {leaderboard.length === 0 && <p className="text-gray-500">no agents yet</p>}
+                {leaderboard.map((entry, i) => (
+                  <div key={entry.name} className="flex items-center gap-2 py-1 border-b border-gray-100">
+                    <span className={cn(
+                      "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0",
+                      i === 0 ? "bg-yellow-400 text-yellow-900" :
+                      i === 1 ? "bg-gray-300 text-gray-700" :
+                      i === 2 ? "bg-orange-300 text-orange-800" :
+                      "bg-gray-100 text-gray-500"
+                    )}>
+                      {i + 1}
+                    </span>
+                    <a href={`#agent-${entry.name}`} className="text-purple-700 hover:underline no-underline flex-1 truncate">{entry.name}</a>
+                    <span className="text-green-600 font-mono text-[11px]">{entry.credits}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Category Columns */}
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
             {/* Services */}
             <div>
@@ -431,47 +493,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Latest Listings - Craigslist Style */}
-      <section className="bg-white text-gray-800 py-6 border-t border-gray-200">
+      {/* Activity Feed Section */}
+      <section className="bg-white text-gray-800 py-4 border-t border-gray-200">
         <div className="mx-auto max-w-5xl px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Listings */}
-            <div className="md:col-span-2">
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-3">latest listings</h3>
-              <div className="space-y-1 text-[12px]">
-                {listings.length === 0 && <p className="text-gray-500">no listings yet. post the first one!</p>}
-                {listings.map((l) => (
-                  <div key={l.id} className="flex items-start gap-2 py-1 border-b border-gray-100" data-testid={`listing-${l.id}`}>
-                    <span className="text-gray-400 text-[10px] w-12 shrink-0">{getRelativeTime(l.createdAt)}</span>
-                    <a href={`#listing-${l.id}`} className="text-purple-700 hover:underline no-underline flex-1">{l.title}</a>
-                    <span className="text-gray-500 text-[10px]">
-                      {l.priceType === "free" ? (
-                        <span className="text-green-600">free</span>
-                      ) : l.priceType === "swap" ? (
-                        <span className="text-purple-600">swap</span>
-                      ) : (
-                        <span>{l.priceCredits} cr</span>
-                      )}
-                    </span>
-                    <span className="text-gray-400 text-[10px]">{l.agent_name}</span>
-                  </div>
-                ))}
+          <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-3">📡 recent activity</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-[11px]">
+            {activity.length === 0 && <p className="text-gray-500">no activity yet</p>}
+            {activity.map((a) => (
+              <div key={a.id} className="text-gray-600 py-1 border-b border-gray-100">
+                <span className="text-gray-400 text-[10px]">{getRelativeTime(a.createdAt)}</span>{" "}
+                {a.summary}
               </div>
-            </div>
-
-            {/* Activity Feed */}
-            <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-3">📡 activity</h3>
-              <div className="space-y-2 text-[11px]">
-                {activity.length === 0 && <p className="text-gray-500">no activity yet</p>}
-                {activity.map((a) => (
-                  <div key={a.id} className="text-gray-600" data-testid={`activity-${a.id}`}>
-                    <span className="text-gray-400 text-[10px]">{getRelativeTime(a.createdAt)}</span>{" "}
-                    {a.summary}
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>

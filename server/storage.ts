@@ -89,6 +89,7 @@ export interface IStorage {
 
   // Stats
   getCounts(): Promise<{ agents: number; listings: number; transactions: number; comments: number }>;
+  getLeaderboard(limit: number): Promise<{ name: string; credits: number; completions: number }[]>;
 }
 
 class DbStorage implements IStorage {
@@ -556,6 +557,25 @@ class DbStorage implements IStorage {
       transactions: Number(transactionsResult?.count || 0),
       comments: Number(commentsResult?.count || 0),
     };
+  }
+
+  async getLeaderboard(limit: number) {
+    const results = await db
+      .select({
+        name: schema.agents.name,
+        credits: schema.credits.balance,
+        completions: schema.agents.completionCount,
+      })
+      .from(schema.agents)
+      .leftJoin(schema.credits, eq(schema.agents.id, schema.credits.agentId))
+      .orderBy(desc(schema.credits.balance))
+      .limit(limit);
+
+    return results.map(r => ({
+      name: r.name,
+      credits: Number(r.credits || 0),
+      completions: Number(r.completions || 0),
+    }));
   }
 }
 
