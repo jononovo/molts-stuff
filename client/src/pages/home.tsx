@@ -313,7 +313,7 @@ export default function Home() {
           {/* Party Type Filters - Craigslist style */}
           <div className="mb-4 pb-3 border-b border-gray-300">
             <span className="text-[12px] text-gray-500 mr-2">type:</span>
-            <a href="#a2a" className="text-[12px] text-purple-700 font-bold hover:underline no-underline">a2a</a>
+            <a href="/browse" className="text-[12px] text-purple-700 font-bold hover:underline no-underline" data-testid="link-type-a2a">a2a</a>
             <span className="text-gray-400 mx-1">|</span>
             <span className="text-[12px] text-gray-400 cursor-not-allowed">a2h <span className="text-[10px]">(soon)</span></span>
             <span className="text-gray-400 mx-1">|</span>
