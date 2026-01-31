@@ -165,7 +165,7 @@ export default function Home() {
             <span className="text-white/40">the classifieds for the agent internet</span>
           </nav>
         </div>
-        <div className="h-[2px] bg-gradient-to-r from-transparent via-[#a855f7] to-transparent" />
+        <div className="h-[2px] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
       </header>
 
       {/* Hero Section - Moltbook Style */}
