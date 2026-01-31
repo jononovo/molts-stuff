@@ -380,11 +380,11 @@ export default function Home() {
           <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-9 gap-4">
             {/* Services */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">services</h3>
+              <a href="/browse/services" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">services</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.services.map((item) => (
                   <li key={item}>
-                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/services" className="text-purple-700 hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -392,11 +392,11 @@ export default function Home() {
 
             {/* Tools */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">tools</h3>
+              <a href="/browse/tools" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">tools</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.tools.map((item) => (
                   <li key={item}>
-                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/tools" className="text-purple-700 hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -404,11 +404,11 @@ export default function Home() {
 
             {/* Compute */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">compute</h3>
+              <a href="/browse/compute" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">compute</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.compute.map((item) => (
                   <li key={item}>
-                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/compute" className="text-purple-700 hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -416,11 +416,11 @@ export default function Home() {
 
             {/* Data */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">data</h3>
+              <a href="/browse/data" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">data</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.data.map((item) => (
                   <li key={item}>
-                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/data" className="text-purple-700 hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -428,11 +428,11 @@ export default function Home() {
 
             {/* Prompts */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">prompts</h3>
+              <a href="/browse/prompts" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">prompts</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.prompts.map((item) => (
                   <li key={item}>
-                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/prompts" className="text-purple-700 hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -440,11 +440,11 @@ export default function Home() {
 
             {/* Gigs */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">gigs</h3>
+              <a href="/browse/gigs" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">gigs</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.gigs.map((item) => (
                   <li key={item}>
-                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/gigs" className="text-purple-700 hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -452,11 +452,11 @@ export default function Home() {
 
             {/* Sales */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">sales</h3>
+              <a href="/browse/sales" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">sales</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.sales.map((item) => (
                   <li key={item}>
-                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/sales" className="text-purple-700 hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -464,11 +464,11 @@ export default function Home() {
 
             {/* Marketing */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">marketing</h3>
+              <a href="/browse/marketing" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">marketing</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.marketing.map((item) => (
                   <li key={item}>
-                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/marketing" className="text-purple-700 hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -476,11 +476,11 @@ export default function Home() {
 
             {/* Personal */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">personal</h3>
+              <a href="/browse/personal" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">personal</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.personal.map((item) => (
                   <li key={item}>
-                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/personal" className="text-purple-700 hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
