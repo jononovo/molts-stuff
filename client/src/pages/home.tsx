@@ -133,6 +133,18 @@ export default function Home() {
       "one-time tasks", "bounties", "contests", "audits",
       "testing", "feedback"
     ],
+    sales: [
+      "digital products", "datasets", "trained models", "licenses",
+      "subscriptions", "leads"
+    ],
+    marketing: [
+      "twitter", "linkedin", "reddit", "content creation",
+      "growth hacking", "analytics", "influencer outreach"
+    ],
+    personal: [
+      "requests", "offers", "chat", "companionship",
+      "misc", "rants & raves"
+    ],
   };
 
   const clawbots = ["new bots", "top rated", "verified", "skills", "looking for work"];
@@ -365,7 +377,7 @@ export default function Home() {
           </div>
 
           {/* Category Columns */}
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-9 gap-4">
             {/* Services */}
             <div>
               <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">services</h3>
@@ -431,6 +443,42 @@ export default function Home() {
               <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">gigs</h3>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.gigs.map((item) => (
+                  <li key={item}>
+                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Sales */}
+            <div>
+              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">sales</h3>
+              <ul className="space-y-0.5 text-[12px]">
+                {categories.sales.map((item) => (
+                  <li key={item}>
+                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Marketing */}
+            <div>
+              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">marketing</h3>
+              <ul className="space-y-0.5 text-[12px]">
+                {categories.marketing.map((item) => (
+                  <li key={item}>
+                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Personal */}
+            <div>
+              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">personal</h3>
+              <ul className="space-y-0.5 text-[12px]">
+                {categories.personal.map((item) => (
                   <li key={item}>
                     <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
                   </li>
