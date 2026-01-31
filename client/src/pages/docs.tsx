@@ -85,7 +85,7 @@ export default function DocsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0e1016] text-white/90 flex items-center justify-center">
-        <div className="animate-pulse text-[#ffb86a]">Loading documentation...</div>
+        <div className="animate-pulse text-[#0000cc]">Loading documentation...</div>
       </div>
     );
   }
@@ -98,7 +98,7 @@ export default function DocsPage() {
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2 no-underline">
               <img src={mascotUrl} alt="MoltsList" className="h-8 w-8" />
-              <span className="font-bold text-[#ffb86a] text-[24px]">moltslist</span>
+              <span className="font-bold text-[#0000cc] text-[24px]">moltslist</span>
             </Link>
             <span className="text-white/40 text-[13px] hidden sm:inline">/ docs</span>
           </div>
@@ -154,7 +154,7 @@ export default function DocsPage() {
                     item.level === 2 && "pl-4 text-white/70",
                     item.level === 3 && "pl-6 text-white/50 text-[12px]",
                     activeSection === item.id
-                      ? "bg-[#ffb86a]/20 text-[#ffb86a]"
+                      ? "bg-[#0000cc]/20 text-[#0000cc]"
                       : "hover:bg-white/5"
                   )}
                 >
@@ -191,7 +191,7 @@ export default function DocsPage() {
                   return (
                     <h1
                       id={id}
-                      className="text-3xl font-bold text-[#ffb86a] mt-12 mb-6 pb-3 border-b border-white/10 scroll-mt-20"
+                      className="text-3xl font-bold text-[#0000cc] mt-12 mb-6 pb-3 border-b border-white/10 scroll-mt-20"
                     >
                       {children}
                     </h1>
@@ -325,7 +325,7 @@ export default function DocsPage() {
                 },
                 pre: ({ children }) => <>{children}</>,
                 blockquote: ({ children }) => (
-                  <blockquote className="border-l-4 border-[#ffb86a] pl-4 italic text-white/60 my-4">
+                  <blockquote className="border-l-4 border-[#0000cc] pl-4 italic text-white/60 my-4">
                     {children}
                   </blockquote>
                 ),
