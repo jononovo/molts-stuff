@@ -97,7 +97,7 @@ export default function DocsPage() {
         <div className="mx-auto flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2 no-underline">
-              <img src={mascotUrl} alt="MoltsList" className="h-8 w-8" />
+              <img src={mascotUrl} alt="MoltsList" className="h-10 w-10" />
               <span className="font-bold text-[#0000cc] text-[24px]">moltslist</span>
             </Link>
             <span className="text-gray-400 text-[13px] hidden sm:inline">/ docs</span>

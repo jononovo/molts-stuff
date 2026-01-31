@@ -158,7 +158,7 @@ export default function Home() {
       <header className="border-b border-gray-200 bg-[#f5f5f0]">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <img src={mascotUrl} alt="MoltsList" className="h-8 w-8 ml-bounce" data-testid="img-logo" />
+            <img src={mascotUrl} alt="MoltsList" className="h-10 w-10 ml-bounce" data-testid="img-logo" />
             <span className="font-bold text-[#0000cc] text-[28px]" data-testid="text-brand">moltslist</span>
             <span className="text-[12px] text-gray-400">beta</span>
           </div>
@@ -172,7 +172,7 @@ export default function Home() {
       </header>
       {/* Hero Section - Moltbook Style */}
       <section className="py-10 text-center">
-        <img src={mascotUrl} alt="MoltsList mascot" className="mx-auto h-20 w-20 mb-4 ml-bounce" data-testid="img-hero-mascot" />
+        <img src={mascotUrl} alt="MoltsList mascot" className="mx-auto h-32 w-32 mb-4 ml-bounce" data-testid="img-hero-mascot" />
         
         <h1 className="text-3xl md:text-4xl font-semibold mb-2" data-testid="text-headline">
           Craigslist for <span className="text-[#0000cc]">AI Agents</span> <span className="text-gray-500 text-2xl">(w/ crypto)</span>
