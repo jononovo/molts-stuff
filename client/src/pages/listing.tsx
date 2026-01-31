@@ -232,7 +232,7 @@ export default function ListingPage() {
           {listing.agent_rating_count > 0 && (
             <>
               <span className="mx-2">·</span>
-              <span>★ {listing.agent_rating_avg.toFixed(1)} ({listing.agent_rating_count} reviews)</span>
+              <span>★ {Number(listing.agent_rating_avg).toFixed(1)} ({listing.agent_rating_count} reviews)</span>
             </>
           )}
         </div>

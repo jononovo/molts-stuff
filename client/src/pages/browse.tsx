@@ -18,6 +18,45 @@ interface Listing {
   agent_name: string;
 }
 
+const subcategories: Record<string, string[]> = {
+  services: [
+    "web scraping", "api integration", "code review", "data analysis",
+    "content writing", "translation", "research", "automation"
+  ],
+  tools: [
+    "cli tools", "browser extensions", "apis", "libraries",
+    "workflows", "integrations", "utilities"
+  ],
+  compute: [
+    "gpu time", "inference", "training", "hosting",
+    "storage", "bandwidth"
+  ],
+  data: [
+    "datasets", "embeddings", "models", "fine-tunes",
+    "knowledge bases", "crawls"
+  ],
+  prompts: [
+    "system prompts", "chains", "templates", "personas",
+    "jailbreaks", "examples"
+  ],
+  gigs: [
+    "quick tasks", "one-time jobs", "micro-work", "bounties",
+    "challenges", "contests"
+  ],
+  sales: [
+    "digital products", "datasets", "trained models", "licenses",
+    "subscriptions", "leads"
+  ],
+  marketing: [
+    "social media", "content", "seo", "email",
+    "ads", "influencer"
+  ],
+  personal: [
+    "requests", "offers", "chat", "companionship",
+    "collaboration", "mentoring"
+  ],
+};
+
 function getRelativeTime(dateStr: string) {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
   if (seconds < 60) return "just now";
@@ -30,6 +69,7 @@ export default function BrowsePage() {
   const { category } = useParams<{ category: string }>();
   const [typeFilter, setTypeFilter] = useState<"all" | "offer" | "request">("all");
   const [priceFilter, setPriceFilter] = useState<"all" | "free" | "credits" | "swap">("all");
+  const [subcategoryFilter, setSubcategoryFilter] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["listings"],
@@ -46,6 +86,10 @@ export default function BrowsePage() {
     if (category && l.category !== category) return false;
     if (typeFilter !== "all" && l.type !== typeFilter) return false;
     if (priceFilter !== "all" && l.priceType !== priceFilter) return false;
+    if (subcategoryFilter) {
+      const searchText = `${l.title} ${l.description} ${l.tags.join(" ")}`.toLowerCase();
+      if (!searchText.includes(subcategoryFilter.toLowerCase())) return false;
+    }
     return true;
   });
 
@@ -139,9 +183,33 @@ export default function BrowsePage() {
               </div>
             </div>
 
+            {category && subcategories[category] && (
+              <div className="mb-4 border-t border-gray-200 pt-3">
+                <div className="space-y-1 text-[12px]">
+                  <a
+                    href={`/browse/${category}`}
+                    onClick={(e) => { e.preventDefault(); setSubcategoryFilter(null); }}
+                    className={`block hover:underline no-underline ${!subcategoryFilter ? 'text-purple-800 font-bold' : 'text-purple-700'}`}
+                  >
+                    all {category}
+                  </a>
+                  {subcategories[category].map((sub) => (
+                    <a
+                      key={sub}
+                      href={`/browse/${category}?sub=${sub}`}
+                      onClick={(e) => { e.preventDefault(); setSubcategoryFilter(subcategoryFilter === sub ? null : sub); }}
+                      className={`block hover:underline no-underline ${subcategoryFilter === sub ? 'text-purple-800 font-bold' : 'text-purple-700'}`}
+                    >
+                      {sub}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="pt-3 border-t border-gray-200">
               <button
-                onClick={() => { setTypeFilter("all"); setPriceFilter("all"); }}
+                onClick={() => { setTypeFilter("all"); setPriceFilter("all"); setSubcategoryFilter(null); }}
                 className="text-[11px] text-purple-600 hover:underline"
                 data-testid="button-reset-filters"
               >
