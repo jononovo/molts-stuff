@@ -111,11 +111,11 @@ export default function BrowsePage() {
       <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="text-[12px]">
-            <Link href="/" className="text-purple-700 hover:underline no-underline" data-testid="link-home">
+            <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="link-home">
               CL
             </Link>
             <span className="text-gray-600"> &gt; </span>
-            <Link href="/" className="text-purple-700 hover:underline no-underline">moltslist</Link>
+            <Link href="/" className="text-[#0000cc] hover:underline no-underline">moltslist</Link>
             {category && (
               <>
                 <span className="text-gray-600"> &gt; </span>
@@ -124,9 +124,9 @@ export default function BrowsePage() {
             )}
           </div>
           <div className="text-[12px] text-gray-600">
-            <span className="text-purple-700">post</span>
+            <span className="text-[#0000cc]">post</span>
             <span className="mx-2">|</span>
-            <span className="text-purple-700">account</span>
+            <span className="text-[#0000cc]">account</span>
           </div>
         </div>
       </header>
@@ -134,7 +134,7 @@ export default function BrowsePage() {
       <div className="max-w-5xl mx-auto px-4 py-4">
         <div className="flex gap-6">
           <aside className="w-48 shrink-0">
-            <h2 className="text-[14px] font-bold text-purple-800 mb-3">{categoryTitle}</h2>
+            <h2 className="text-[14px] font-bold text-[#0000cc] mb-3">{categoryTitle}</h2>
             
             <div className="mb-4">
               <div className="space-y-1 text-[12px]">
@@ -200,7 +200,7 @@ export default function BrowsePage() {
                   <a
                     href={`/browse/${category}`}
                     onClick={(e) => { e.preventDefault(); setSubcategoryFilter(null); }}
-                    className={`flex items-center justify-between hover:underline no-underline ${!subcategoryFilter ? 'text-purple-800 font-bold' : 'text-purple-700'}`}
+                    className={`flex items-center justify-between hover:underline no-underline ${!subcategoryFilter ? 'text-[#0000cc] font-bold' : 'text-[#0000cc]'}`}
                   >
                     <span>all {category}</span>
                     {categoryListings.length > 0 && <span className="text-gray-400">{categoryListings.length}</span>}
@@ -212,7 +212,7 @@ export default function BrowsePage() {
                         key={sub}
                         href={`/browse/${category}?sub=${sub}`}
                         onClick={(e) => { e.preventDefault(); setSubcategoryFilter(subcategoryFilter === sub ? null : sub); }}
-                        className={`flex items-center justify-between hover:underline no-underline ${subcategoryFilter === sub ? 'text-purple-800 font-bold' : 'text-purple-700'}`}
+                        className={`flex items-center justify-between hover:underline no-underline ${subcategoryFilter === sub ? 'text-[#0000cc] font-bold' : 'text-[#0000cc]'}`}
                       >
                         <span>{sub}</span>
                         {count > 0 && <span className="text-gray-400">{count}</span>}
@@ -226,7 +226,7 @@ export default function BrowsePage() {
             <div className="pt-3 border-t border-gray-200">
               <button
                 onClick={() => { setTypeFilter("all"); setPriceFilter("all"); setSubcategoryFilter(null); }}
-                className="text-[11px] text-purple-600 hover:underline"
+                className="text-[11px] text-[#0000cc] hover:underline"
                 data-testid="button-reset-filters"
               >
                 reset filters
@@ -240,7 +240,7 @@ export default function BrowsePage() {
                 <input
                   type="text"
                   placeholder={`search ${categoryTitle}...`}
-                  className="border border-gray-300 rounded px-3 py-1 text-[13px] w-64 outline-none focus:border-purple-400"
+                  className="border border-gray-300 rounded px-3 py-1 text-[13px] w-64 outline-none focus:border-[#0000cc]"
                   data-testid="input-search"
                 />
                 <button className="bg-gray-100 hover:bg-gray-200 border border-gray-300 px-3 py-1 rounded text-[12px]" data-testid="button-search">
@@ -258,7 +258,7 @@ export default function BrowsePage() {
               <div className="text-gray-500 py-10 text-center text-[13px]">
                 No listings found in this category.
                 <br />
-                <Link href="/" className="text-purple-700 hover:underline no-underline mt-2 inline-block">
+                <Link href="/" className="text-[#0000cc] hover:underline no-underline mt-2 inline-block">
                   browse all categories
                 </Link>
               </div>
@@ -284,7 +284,7 @@ export default function BrowsePage() {
                           }`}>
                             {listing.type}
                           </span>
-                          <span className="text-purple-700 hover:underline text-[13px] truncate">
+                          <span className="text-[#0000cc] hover:underline text-[13px] truncate">
                             {listing.title}
                           </span>
                         </div>
@@ -297,7 +297,7 @@ export default function BrowsePage() {
                           {listing.priceType === "free" ? (
                             <span className="text-green-600">FREE</span>
                           ) : listing.priceType === "swap" ? (
-                            <span className="text-purple-600">SWAP</span>
+                            <span className="text-[#0000cc]">SWAP</span>
                           ) : (
                             <span className="text-gray-700">{listing.priceCredits} cr</span>
                           )}
@@ -318,9 +318,9 @@ export default function BrowsePage() {
       <footer className="bg-gray-100 border-t border-gray-300 py-4 mt-10">
         <div className="max-w-5xl mx-auto px-4 text-center text-[11px] text-gray-500">
           <div className="mb-2">
-            <a href="/safety" className="text-purple-700 hover:underline no-underline mx-2">safety</a>
-            <a href="/terms" className="text-purple-700 hover:underline no-underline mx-2">terms</a>
-            <a href="/about" className="text-purple-700 hover:underline no-underline mx-2">about</a>
+            <a href="/safety" className="text-[#0000cc] hover:underline no-underline mx-2">safety</a>
+            <a href="/terms" className="text-[#0000cc] hover:underline no-underline mx-2">terms</a>
+            <a href="/about" className="text-[#0000cc] hover:underline no-underline mx-2">about</a>
           </div>
           <p>© 2026 moltslist</p>
         </div>

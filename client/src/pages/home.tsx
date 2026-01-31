@@ -405,7 +405,7 @@ export default function Home() {
           {/* Party Type Filters - Craigslist style */}
           <div className="mb-4 pb-3 border-b border-gray-300">
             <span className="text-[12px] text-gray-500 mr-2">type:</span>
-            <a href="/browse" className="text-[12px] text-purple-700 font-bold hover:underline no-underline" data-testid="link-type-a2a">a2a</a>
+            <a href="/browse" className="text-[12px] text-[#0000cc] font-bold hover:underline no-underline" data-testid="link-type-a2a">a2a</a>
             <span className="text-gray-400 mx-1">|</span>
             <span className="text-[12px] text-gray-400 cursor-not-allowed">a2h <span className="text-[10px]">(soon)</span></span>
             <span className="text-gray-400 mx-1">|</span>
@@ -413,7 +413,7 @@ export default function Home() {
             <span className="text-gray-400 mx-1">|</span>
             <span className="text-[12px] text-gray-400 cursor-not-allowed">any <span className="text-[10px]">(soon)</span></span>
             <span className="text-gray-400 mx-3">—</span>
-            <a href="https://google.github.io/A2A/" target="_blank" rel="noreferrer" className="text-[11px] text-purple-600 hover:underline no-underline">
+            <a href="https://google.github.io/A2A/" target="_blank" rel="noreferrer" className="text-[11px] text-[#0000cc] hover:underline no-underline">
               what is A2A?
             </a>
           </div>
@@ -422,18 +422,18 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* Latest Listings */}
             <div className="md:col-span-2">
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">📝 latest listings</h3>
+              <h3 className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2">📝 latest listings</h3>
               <div className="space-y-1 text-[12px]">
                 {listings.length === 0 && <p className="text-gray-500">no listings yet</p>}
                 {listings.slice(0, 10).map((l) => (
                   <div key={l.id} className="flex items-start gap-2 py-1 border-b border-gray-100">
                     <span className="text-gray-400 text-[10px] w-14 shrink-0">{getRelativeTime(l.createdAt)}</span>
-                    <a href={`/listings/${l.id}`} className="text-purple-700 hover:underline no-underline flex-1 truncate">{l.title}</a>
+                    <a href={`/listings/${l.id}`} className="text-[#0000cc] hover:underline no-underline flex-1 truncate">{l.title}</a>
                     <span className="text-[10px] shrink-0">
                       {l.priceType === "free" ? (
                         <span className="text-green-600">free</span>
                       ) : l.priceType === "swap" ? (
-                        <span className="text-purple-600">swap</span>
+                        <span className="text-[#0000cc]">swap</span>
                       ) : (
                         <span className="text-gray-600">{l.priceCredits} cr</span>
                       )}
@@ -447,8 +447,8 @@ export default function Home() {
             {/* Leaderboard */}
             <div>
               <div className="flex items-center justify-between border-b border-gray-300 pb-1 mb-2">
-                <h3 className="text-[13px] font-bold text-purple-800">🏆 top agents</h3>
-                <Link href="/clawbots" className="text-[11px] text-purple-600 hover:underline no-underline" data-testid="link-view-all-agents">view all →</Link>
+                <h3 className="text-[13px] font-bold text-[#0000cc]">🏆 top agents</h3>
+                <Link href="/clawbots" className="text-[11px] text-[#0000cc] hover:underline no-underline" data-testid="link-view-all-agents">view all →</Link>
               </div>
               <div className="space-y-1 text-[12px]">
                 {leaderboard.length === 0 && <p className="text-gray-500">no agents yet</p>}
@@ -463,7 +463,7 @@ export default function Home() {
                     )}>
                       {i + 1}
                     </span>
-                    <a href={`/u/${entry.name}`} className="text-purple-700 hover:underline no-underline flex-1 truncate">{entry.name}</a>
+                    <a href={`/u/${entry.name}`} className="text-[#0000cc] hover:underline no-underline flex-1 truncate">{entry.name}</a>
                     <span className="text-green-600 font-mono text-[11px]">{entry.credits}</span>
                   </div>
                 ))}
@@ -475,11 +475,11 @@ export default function Home() {
           <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-9 gap-4">
             {/* Services */}
             <div>
-              <a href="/browse/services" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">services</a>
+              <a href="/browse/services" className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">services</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.services.map((item) => (
                   <li key={item}>
-                    <a href="/browse/services" className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/services" className="text-[#0000cc] hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -487,11 +487,11 @@ export default function Home() {
 
             {/* Tools */}
             <div>
-              <a href="/browse/tools" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">tools</a>
+              <a href="/browse/tools" className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">tools</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.tools.map((item) => (
                   <li key={item}>
-                    <a href="/browse/tools" className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/tools" className="text-[#0000cc] hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -499,11 +499,11 @@ export default function Home() {
 
             {/* Compute */}
             <div>
-              <a href="/browse/compute" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">compute</a>
+              <a href="/browse/compute" className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">compute</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.compute.map((item) => (
                   <li key={item}>
-                    <a href="/browse/compute" className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/compute" className="text-[#0000cc] hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -511,11 +511,11 @@ export default function Home() {
 
             {/* Data */}
             <div>
-              <a href="/browse/data" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">data</a>
+              <a href="/browse/data" className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">data</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.data.map((item) => (
                   <li key={item}>
-                    <a href="/browse/data" className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/data" className="text-[#0000cc] hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -523,11 +523,11 @@ export default function Home() {
 
             {/* Prompts */}
             <div>
-              <a href="/browse/prompts" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">prompts</a>
+              <a href="/browse/prompts" className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">prompts</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.prompts.map((item) => (
                   <li key={item}>
-                    <a href="/browse/prompts" className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/prompts" className="text-[#0000cc] hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -535,11 +535,11 @@ export default function Home() {
 
             {/* Gigs */}
             <div>
-              <a href="/browse/gigs" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">gigs</a>
+              <a href="/browse/gigs" className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">gigs</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.gigs.map((item) => (
                   <li key={item}>
-                    <a href="/browse/gigs" className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/gigs" className="text-[#0000cc] hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -547,11 +547,11 @@ export default function Home() {
 
             {/* Sales */}
             <div>
-              <a href="/browse/sales" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">sales</a>
+              <a href="/browse/sales" className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">sales</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.sales.map((item) => (
                   <li key={item}>
-                    <a href="/browse/sales" className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/sales" className="text-[#0000cc] hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -559,11 +559,11 @@ export default function Home() {
 
             {/* Marketing */}
             <div>
-              <a href="/browse/marketing" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">marketing</a>
+              <a href="/browse/marketing" className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">marketing</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.marketing.map((item) => (
                   <li key={item}>
-                    <a href="/browse/marketing" className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/marketing" className="text-[#0000cc] hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -571,11 +571,11 @@ export default function Home() {
 
             {/* Personal */}
             <div>
-              <a href="/browse/personal" className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">personal</a>
+              <a href="/browse/personal" className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2 block hover:underline no-underline">personal</a>
               <ul className="space-y-0.5 text-[12px]">
                 {categories.personal.map((item) => (
                   <li key={item}>
-                    <a href="/browse/personal" className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href="/browse/personal" className="text-[#0000cc] hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -586,11 +586,11 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-4 border-t border-gray-300">
             {/* Clawbots */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">🤖 clawbots</h3>
+              <h3 className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2">🤖 clawbots</h3>
               <ul className="space-y-0.5 text-[12px]">
                 {clawbots.map((item) => (
                   <li key={item}>
-                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href={`#${item}`} className="text-[#0000cc] hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -598,11 +598,11 @@ export default function Home() {
 
             {/* Community */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">💬 community</h3>
+              <h3 className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2">💬 community</h3>
               <ul className="space-y-0.5 text-[12px]">
                 {community.map((item) => (
                   <li key={item}>
-                    <a href={`#${item}`} className="text-purple-700 hover:underline no-underline">{item}</a>
+                    <a href={`#${item}`} className="text-[#0000cc] hover:underline no-underline">{item}</a>
                   </li>
                 ))}
               </ul>
@@ -610,12 +610,12 @@ export default function Home() {
 
             {/* Recent Agents */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">⚡ recent agents</h3>
+              <h3 className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2">⚡ recent agents</h3>
               <ul className="space-y-1 text-[12px]">
                 {signups.length === 0 && <li className="text-gray-500">no agents yet</li>}
                 {signups.filter(s => s.kind === "agent").slice(0, 5).map((s) => (
                   <li key={s.id} className="flex items-center justify-between">
-                    <a href={`/u/${s.name}`} className="text-purple-700 hover:underline no-underline">{s.name}</a>
+                    <a href={`/u/${s.name}`} className="text-[#0000cc] hover:underline no-underline">{s.name}</a>
                     <span className="text-gray-400 text-[10px]">{getRelativeTime(s.joinedAt)}</span>
                   </li>
                 ))}
@@ -624,12 +624,12 @@ export default function Home() {
 
             {/* Quick Stats */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">📊 stats</h3>
+              <h3 className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-2">📊 stats</h3>
               <ul className="space-y-1 text-[12px]">
-                <li className="flex justify-between"><span className="text-gray-600">agents</span> <span className="text-purple-700 font-mono">{stats.totalAgents}</span></li>
-                <li className="flex justify-between"><span className="text-gray-600">listings</span> <span className="text-purple-700 font-mono">{stats.totalListings}</span></li>
-                <li className="flex justify-between"><span className="text-gray-600">transactions</span> <span className="text-purple-700 font-mono">{stats.totalTransactions}</span></li>
-                <li className="flex justify-between"><span className="text-gray-600">comments</span> <span className="text-purple-700 font-mono">{stats.totalComments}</span></li>
+                <li className="flex justify-between"><span className="text-gray-600">agents</span> <span className="text-[#0000cc] font-mono">{stats.totalAgents}</span></li>
+                <li className="flex justify-between"><span className="text-gray-600">listings</span> <span className="text-[#0000cc] font-mono">{stats.totalListings}</span></li>
+                <li className="flex justify-between"><span className="text-gray-600">transactions</span> <span className="text-[#0000cc] font-mono">{stats.totalTransactions}</span></li>
+                <li className="flex justify-between"><span className="text-gray-600">comments</span> <span className="text-[#0000cc] font-mono">{stats.totalComments}</span></li>
               </ul>
             </div>
           </div>
@@ -638,7 +638,7 @@ export default function Home() {
       {/* Activity Feed Section */}
       <section className="bg-white text-gray-800 py-4 border-t border-gray-200">
         <div className="mx-auto max-w-5xl px-4">
-          <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-3">📡 recent activity</h3>
+          <h3 className="text-[13px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-3">📡 recent activity</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-[11px]">
             {activity.length === 0 && <p className="text-gray-500">no activity yet</p>}
             {activity.map((a) => (
