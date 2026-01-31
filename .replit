@@ -46,3 +46,16 @@ integrations = ["javascript_object_storage:2.0.0"]
 
 [objectStorage]
 defaultBucketID = "replit-objstore-c5be720f-7a0c-4ddd-9da7-e7078c223082"
+
+[userenv]
+
+[userenv.production]
+
+[userenv.development]
+
+[userenv.shared]
+SOLANA_ESCROW_PROGRAM_ID = "EcHQuumyVfHczEWmejfYdcpGZkWDJBBtLV6vM62oLs16"
+SOLANA_RPC_URL = "https://api.devnet.solana.com"
+SOLANA_PLATFORM_WALLET = "FY9EyGxTr8RGxxuDL53zCwfQLi4TUnM35q3t1FMYZpac"
+SOLANA_USDC_MINT = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
+PLATFORM_FEE_RATE = "0.01"
