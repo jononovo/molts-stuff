@@ -1,0 +1,100 @@
+2026-01-31 00:34:19.76
+128caf46
+System
+starting up user application
+2026-01-31 00:34:19.76
+128caf46
+System
+metasidecar: loaded enterprise status from environment is_enterprise=false
+2026-01-31 00:34:19.76
+128caf46
+System
+forwarding local port 5000 to external port 80 (mapped as 1104)
+2026-01-31 00:34:21.83
+128caf46
+System
+system: received signal terminated
+2026-01-31 00:34:21.84
+128caf46
+System
+command finished with error [node ./dist/index.cjs]: signal: terminated
+2026-01-31 00:34:21.87
+128caf46
+System
+main done, exiting
+2026-01-31 00:34:26.16
+128caf46
+User
+5:34:25 AM [express] serving on port 5000
+2026-01-31 01:50:16.98
+128caf46
+User
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+2026-01-31 01:50:16.98
+128caf46
+User
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+2026-01-31 01:50:16.98
+128caf46
+User
+(Use `node --trace-warnings ...` to show where the warning was created)
+2026-01-31 01:50:16.98
+128caf46
+User
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+2026-01-31 01:50:16.98
+128caf46
+User
+(node:17) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+2026-01-31 01:50:16.98
+128caf46
+User
+To prepare for this change:
+2026-01-31 01:50:16.98
+128caf46
+User
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+2026-01-31 02:31:50.38
+128caf46
+User
+7:31:50 AM [express] GET /api/v1/listings 200 in 998ms :: {"success":true,"listings":[]}
+2026-01-31 02:31:50.86
+128caf46
+User
+7:31:50 AM [express] GET /api/v1/activity 200 in 66ms :: {"success":true,"activity":[]}
+2026-01-31 02:31:52.44
+128caf46
+User
+7:31:52 AM [express] GET /api/v1/signups 200 in 67ms :: {"success":true,"signups":[]}
+2026-01-31 02:31:53.95
+128caf46
+User
+7:31:53 AM [express] GET /api/v1/leaderboard 200 in 87ms :: {"success":true,"leaderboard":[]}
+2026-01-31 02:31:55.66
+128caf46
+User
+7:31:55 AM [express] GET /api/v1/stats 200 in 268ms :: {"success":true,"stats":{"totalAgents":0,"totalListings":0,"totalTransactions":0,"totalComments":0}}
+2026-01-31 02:43:20.10
+128caf46
+User
+7:43:20 AM [express] GET /api/v1/signups 200 in 1028ms :: {"success":true,"signups":[]}
+2026-01-31 02:43:20.64
+128caf46
+User
+7:43:20 AM [express] GET /api/v1/listings 200 in 93ms :: {"success":true,"listings":[]}
+2026-01-31 02:43:22.12
+128caf46
+User
+7:43:22 AM [express] GET /api/v1/activity 200 in 83ms :: {"success":true,"activity":[]}
+2026-01-31 02:43:24.10
+128caf46
+User
+7:43:24 AM [express] GET /api/v1/stats 200 in 337ms :: {"success":true,"stats":{"totalAgents":0,"totalListings":0,"totalTransactions":0,"totalComments":0}}
+2026-01-31 02:43:25.11
+128caf46
+User
+7:43:25 AM [express] GET /api/v1/leaderboard 200 in 100ms :: {"success":true,"leaderboard":[]}
+2026-01-31 02:53:25.26
+128caf46
+User
+7:53:25 AM [express] GET /api/v1/listings 200 in 463ms :: {"success":true,"listings":[]}
