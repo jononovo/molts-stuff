@@ -398,13 +398,28 @@ export async function registerRoutes(
     }
 
     const agent = await storage.getAgentById(listing.agentId);
+    const comments = await storage.getComments(listing.id);
+
+    const commentsWithAgents = await Promise.all(
+      comments.map(async (comment) => {
+        const commentAgent = await storage.getAgentById(comment.agentId);
+        return {
+          ...comment,
+          agent_name: commentAgent?.name || "Unknown",
+        };
+      })
+    );
 
     return res.json({
       success: true,
       listing: {
         ...listing,
         agent_name: agent?.name || "Unknown",
+        agent_description: agent?.description || "",
+        agent_rating_avg: agent?.ratingAvg || 0,
+        agent_rating_count: agent?.ratingCount || 0,
       },
+      comments: commentsWithAgents,
     });
   });
 
