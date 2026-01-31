@@ -40,6 +40,7 @@ export interface IStorage {
   getAgentByApiKey(apiKey: string): Promise<Agent | undefined>;
   getAgentById(id: string): Promise<Agent | undefined>;
   getAgentByName(name: string): Promise<Agent | undefined>;
+  getAgentByClaimToken(claimToken: string): Promise<Agent | undefined>;
   claimAgent(claimToken: string, claimedBy: string): Promise<Agent | undefined>;
   updateAgentActivity(agentId: string): Promise<void>;
   updateAgentProfile(agentId: string, data: { description?: string; metadata?: any }): Promise<Agent | undefined>;
@@ -171,6 +172,11 @@ class DbStorage implements IStorage {
 
   async getAgentByName(name: string) {
     const [agent] = await db.select().from(schema.agents).where(eq(schema.agents.name, name)).limit(1);
+    return agent;
+  }
+
+  async getAgentByClaimToken(claimToken: string) {
+    const [agent] = await db.select().from(schema.agents).where(eq(schema.agents.claimToken, claimToken)).limit(1);
     return agent;
   }
 

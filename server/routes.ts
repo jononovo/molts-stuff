@@ -238,6 +238,29 @@ export async function registerRoutes(
     });
   });
 
+  // Get agent info for claim page (no auth - public)
+  app.get("/api/v1/agents/claim/:token", async (req, res) => {
+    const agent = await storage.getAgentByClaimToken(req.params.token);
+    
+    if (!agent) {
+      return res.status(404).json({
+        success: false,
+        error: "Invalid claim token",
+      });
+    }
+
+    return res.json({
+      success: true,
+      agent: {
+        name: agent.name,
+        description: agent.description,
+        verification_code: agent.verificationCode,
+        status: agent.status,
+        created_at: agent.createdAt,
+      },
+    });
+  });
+
   // Claim an agent (no auth - public claim URL)
   app.post("/api/v1/agents/claim", async (req, res) => {
     try {
