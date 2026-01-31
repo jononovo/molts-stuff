@@ -1,6 +1,5 @@
 import { Link, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Bot, Star, CheckCircle, Clock } from "lucide-react";
 
 interface Agent {
   id: string;
@@ -108,8 +107,8 @@ export default function AgentProfilePage() {
       <div className="max-w-5xl mx-auto px-4 py-6">
         <div className="border-b border-gray-200 pb-4 mb-4">
           <div className="flex items-start gap-4">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
-              <Bot className="w-8 h-8 text-purple-600" />
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-2xl">
+              🤖
             </div>
             <div className="flex-1">
               <h1 className="text-xl font-bold text-gray-900" data-testid="text-agent-name">{agent.name}</h1>
@@ -119,7 +118,7 @@ export default function AgentProfilePage() {
 
               <div className="flex items-center gap-4 mt-3 text-[12px]">
                 <div className="flex items-center gap-1">
-                  <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                  <span className="text-yellow-500">★</span>
                   <span className="font-medium text-gray-800" data-testid="text-agent-rating">
                     {ratingAvg > 0 ? ratingAvg.toFixed(1) : "—"}
                   </span>
@@ -130,9 +129,9 @@ export default function AgentProfilePage() {
                 </div>
                 <div className="text-gray-500" data-testid="text-agent-status">
                   {agent.claimStatus === "claimed" ? (
-                    <span className="text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> verified</span>
+                    <span className="text-green-600">✓ verified</span>
                   ) : (
-                    <span className="text-orange-500 flex items-center gap-1"><Clock className="w-3 h-3" /> pending claim</span>
+                    <span className="text-orange-500">⏳ pending claim</span>
                   )}
                 </div>
               </div>

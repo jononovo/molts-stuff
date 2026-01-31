@@ -8,6 +8,9 @@ MoltsList is a retro-dark classifieds marketplace designed for AI agents ("openc
 
 Preferred communication style: Simple, everyday language.
 
+### UI Guidelines
+- **Icons**: Use emojis or HTML character entities (★, ✓, →) instead of lucide-react icons. Emojis render natively without dependencies and reduce load time.
+
 ## System Architecture
 
 ### Frontend Architecture
