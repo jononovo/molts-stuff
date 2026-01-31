@@ -45,13 +45,13 @@ const queryClientOptions = {
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: false,
-      refetchOnWindowFocus: false,
+      refetchInterval: false as const,
+      refetchOnWindowFocus: false as const,
       staleTime: Infinity,
-      retry: false,
+      retry: false as const,
     },
     mutations: {
-      retry: false,
+      retry: false as const,
     },
   },
 };

@@ -11,6 +11,8 @@ interface Listing {
   type: string;
   priceType: string;
   priceCredits: number | null;
+  priceUsdc: number | null;
+  acceptsUsdc: boolean;
   location: string;
   tags: string[];
   status: string;
@@ -298,6 +300,10 @@ export default function BrowsePage() {
                             <span className="text-green-600">FREE</span>
                           ) : listing.priceType === "swap" ? (
                             <span className="text-[#0000cc]">SWAP</span>
+                          ) : listing.priceType === "usdc" && listing.priceUsdc ? (
+                            <span className="text-emerald-600">${listing.priceUsdc}</span>
+                          ) : listing.acceptsUsdc && listing.priceUsdc && listing.priceCredits ? (
+                            <span className="text-gray-700">{listing.priceCredits} cr <span className="text-gray-400">/</span> <span className="text-emerald-600">${listing.priceUsdc}</span></span>
                           ) : (
                             <span className="text-gray-700">{listing.priceCredits} cr</span>
                           )}

@@ -3,8 +3,8 @@
 // Environment-based configuration
 export const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
 
-// Escrow program ID (deployed Anchor program)
-export const ESCROW_PROGRAM_ID = process.env.SOLANA_ESCROW_PROGRAM_ID || "EGwYpuDybYgM3eJBTntvpLb7gnsvovcvgCaDrYDkw9jd";
+// Escrow program ID (deployed Anchor program on devnet)
+export const ESCROW_PROGRAM_ID = process.env.SOLANA_ESCROW_PROGRAM_ID || "EcHQuumyVfHczEWmejfYdcpGZkWDJBBtLV6vM62oLs16";
 
 // USDC mint addresses
 export const USDC_MINT = {

@@ -23,6 +23,9 @@ interface Listing {
   type: string;
   priceType: string;
   priceCredits: number | null;
+  priceUsdc: number | null;
+  acceptsUsdc: boolean;
+  preferredChain: string | null;
   location: string;
   tags: string[];
   status: string;
@@ -190,11 +193,35 @@ export default function ListingPage() {
     );
   }
 
-  const priceDisplay = listing.priceType === "credits"
-    ? `${listing.priceCredits} cr`
-    : listing.priceType === "free"
-    ? "FREE"
-    : listing.priceType.toUpperCase();
+  // Build price display
+  const getPriceDisplay = () => {
+    const parts: string[] = [];
+
+    if (listing.priceType === "free") {
+      return "FREE";
+    }
+
+    if (listing.priceType === "credits" && listing.priceCredits) {
+      parts.push(`${listing.priceCredits} cr`);
+    }
+
+    if (listing.priceType === "usdc" && listing.priceUsdc) {
+      parts.push(`$${listing.priceUsdc} USDC`);
+    }
+
+    // Show both if accepts both
+    if (listing.acceptsUsdc && listing.priceUsdc && listing.priceType === "credits") {
+      parts.push(`$${listing.priceUsdc} USDC`);
+    }
+
+    if (listing.priceCredits && listing.priceType === "usdc") {
+      parts.push(`${listing.priceCredits} cr`);
+    }
+
+    return parts.length > 0 ? parts.join(" / ") : listing.priceType.toUpperCase();
+  };
+
+  const priceDisplay = getPriceDisplay();
 
   const typeLabel = listing.type === "offer" ? "OFFERING" : "WANTED";
 
