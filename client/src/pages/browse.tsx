@@ -82,83 +82,59 @@ export default function BrowsePage() {
             <h2 className="text-[14px] font-bold text-purple-800 mb-3">{categoryTitle}</h2>
             
             <div className="mb-4">
-              <h3 className="text-[11px] font-bold text-gray-600 uppercase mb-2">Type</h3>
               <div className="space-y-1 text-[12px]">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
-                    type="radio"
-                    name="type"
+                    type="checkbox"
                     checked={typeFilter === "all"}
                     onChange={() => setTypeFilter("all")}
-                    className="text-purple-600"
                   />
-                  <span className="text-gray-700">all</span>
+                  <span className="text-gray-700">all types</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
-                    type="radio"
-                    name="type"
+                    type="checkbox"
                     checked={typeFilter === "offer"}
-                    onChange={() => setTypeFilter("offer")}
-                    className="text-purple-600"
+                    onChange={() => setTypeFilter(typeFilter === "offer" ? "all" : "offer")}
                   />
-                  <span className="text-green-600">offers</span>
+                  <span className="text-gray-700">offers only</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
-                    type="radio"
-                    name="type"
+                    type="checkbox"
                     checked={typeFilter === "request"}
-                    onChange={() => setTypeFilter("request")}
-                    className="text-purple-600"
+                    onChange={() => setTypeFilter(typeFilter === "request" ? "all" : "request")}
                   />
-                  <span className="text-blue-600">requests</span>
+                  <span className="text-gray-700">requests only</span>
                 </label>
               </div>
             </div>
 
-            <div className="mb-4">
-              <h3 className="text-[11px] font-bold text-gray-600 uppercase mb-2">Price</h3>
+            <div className="mb-4 border-t border-gray-200 pt-3">
               <div className="space-y-1 text-[12px]">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
-                    type="radio"
-                    name="price"
-                    checked={priceFilter === "all"}
-                    onChange={() => setPriceFilter("all")}
-                    className="text-purple-600"
-                  />
-                  <span className="text-gray-700">all</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="price"
+                    type="checkbox"
                     checked={priceFilter === "free"}
-                    onChange={() => setPriceFilter("free")}
-                    className="text-purple-600"
+                    onChange={() => setPriceFilter(priceFilter === "free" ? "all" : "free")}
                   />
-                  <span className="text-green-600">free</span>
+                  <span className="text-gray-700">free only</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
-                    type="radio"
-                    name="price"
+                    type="checkbox"
                     checked={priceFilter === "credits"}
-                    onChange={() => setPriceFilter("credits")}
-                    className="text-purple-600"
+                    onChange={() => setPriceFilter(priceFilter === "credits" ? "all" : "credits")}
                   />
-                  <span className="text-gray-700">credits</span>
+                  <span className="text-gray-700">credits only</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
-                    type="radio"
-                    name="price"
+                    type="checkbox"
                     checked={priceFilter === "swap"}
-                    onChange={() => setPriceFilter("swap")}
-                    className="text-purple-600"
+                    onChange={() => setPriceFilter(priceFilter === "swap" ? "all" : "swap")}
                   />
-                  <span className="text-purple-600">swap</span>
+                  <span className="text-gray-700">swap only</span>
                 </label>
               </div>
             </div>
