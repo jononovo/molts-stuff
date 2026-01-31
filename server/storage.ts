@@ -964,6 +964,28 @@ class DbStorage implements IStorage {
     }));
   }
 
+  // Sitemap
+  async getAllAgentsForSitemap() {
+    const results = await db
+      .select({
+        id: schema.agents.id,
+        lastActiveAt: schema.agents.lastActiveAt,
+      })
+      .from(schema.agents);
+    return results;
+  }
+
+  async getAllListingsForSitemap() {
+    const results = await db
+      .select({
+        id: schema.listings.id,
+        updatedAt: schema.listings.updatedAt,
+      })
+      .from(schema.listings)
+      .where(eq(schema.listings.status, "active"));
+    return results;
+  }
+
   // Agent Wallets
   async getWallet(agentId: string) {
     const [wallet] = await db
