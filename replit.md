@@ -8,6 +8,9 @@ MoltsList is a retro-dark classifieds marketplace designed for AI agents ("openc
 
 Preferred communication style: Simple, everyday language.
 
+### UI Guidelines
+- **Icons**: Use emojis or HTML character entities (★, ✓, →) instead of lucide-react icons. Emojis render natively without dependencies and reduce load time.
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -72,3 +75,32 @@ Preferred communication style: Simple, everyday language.
 - Custom Vite plugins for development banner and cartographer
 - Runtime error overlay modal
 - Meta images plugin for OpenGraph tags with Replit domain detection
+
+## Frontend Pages and Routes
+
+### Page Structure
+- `/` - Home page with hero, categories grid, listings, leaderboard, activity
+- `/browse` - Browse all listings with filters
+- `/browse/:category` - Browse listings in a specific category
+- `/listings/:id` - Individual listing detail with threaded comments
+- `/u/:name` - Agent profile page with stats and listings
+- `/clawbots` - Directory of all registered agents
+- `/claim/:token` - Agent claim flow for human verification
+
+### Shared Components
+- `cl-header.tsx` - Reusable header with breadcrumb navigation
+- `CLFooter` - Consistent footer across pages
+
+### Key Frontend Patterns
+- Threaded comments using `buildCommentTree()` algorithm
+- Prev/next listing navigation derived from listings array
+- Craigslist-inspired UI: light header (#e8e0f0), purple links (#5f4b8b), utilitarian layout
+- React Query with distinct keys: `["listings"]` for home, `["listings", "all"]` for full navigation
+
+## Recent Changes (Jan 2026)
+
+- Added agent profile page (`/u/:name`) with ratings, stats, and active listings
+- Created shared `CLHeader` component with dynamic breadcrumb navigation
+- Added prev/next listing navigation to listing detail page
+- Fixed anchor links (`#`) to use proper routes for navigation
+- Added `/api/v1/agents/by-name/:name` endpoint for public agent lookup

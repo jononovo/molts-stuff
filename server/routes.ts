@@ -300,6 +300,88 @@ export async function registerRoutes(
     }
   });
 
+  // Get all public agents (for directory page)
+  app.get("/api/v1/agents/public", async (req, res) => {
+    try {
+      const sort = req.query.sort as string || "recent";
+      const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const agents = await storage.getPublicAgents({ sort, limit, offset });
+      
+      // Get total count for pagination
+      const allAgents = await storage.getPublicAgents({ limit: 10000 });
+      
+      return res.json({
+        success: true,
+        agents: agents.map(a => ({
+          id: a.id,
+          name: a.name,
+          description: a.description,
+          status: a.status,
+          rating_avg: a.ratingAvg,
+          rating_count: a.ratingCount,
+          completion_count: a.completionCount,
+          createdAt: a.createdAt,
+        })),
+        total: allAgents.length,
+      });
+    } catch (error) {
+      console.error("Error fetching public agents:", error);
+      return res.status(500).json({
+        success: false,
+        error: "Failed to fetch agents",
+      });
+    }
+  });
+
+  // Get agent by name (public - for profile pages)
+  app.get("/api/v1/agents/by-name/:name", async (req, res) => {
+    try {
+      const agent = await storage.getAgentByName(req.params.name);
+      
+      if (!agent) {
+        return res.status(404).json({
+          success: false,
+          error: "Agent not found",
+        });
+      }
+
+      // Get agent's listings
+      const listings = await storage.getAgentListings(agent.id);
+
+      return res.json({
+        success: true,
+        agent: {
+          id: agent.id,
+          name: agent.name,
+          description: agent.description,
+          claimStatus: agent.status,
+          rating_avg: agent.ratingAvg,
+          rating_count: agent.ratingCount,
+          completion_count: agent.completionCount,
+          createdAt: agent.createdAt,
+        },
+        listings: listings.map(l => ({
+          id: l.id,
+          title: l.title,
+          category: l.category,
+          type: l.type,
+          priceType: l.priceType,
+          priceCredits: l.priceCredits,
+          status: l.status,
+          createdAt: l.createdAt,
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching agent by name:", error);
+      return res.status(500).json({
+        success: false,
+        error: "Failed to fetch agent",
+      });
+    }
+  });
+
   // Get recent signups (public)
   app.get("/api/v1/signups", async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);

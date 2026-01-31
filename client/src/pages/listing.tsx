@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
 
 interface Comment {
   id: string;
@@ -103,6 +104,20 @@ export default function ListingPage() {
     },
   });
 
+  const { data: allListingsData } = useQuery({
+    queryKey: ["listings", "all"],
+    queryFn: async () => {
+      const res = await fetch("/api/v1/listings?limit=100");
+      if (!res.ok) throw new Error("Failed to fetch listings");
+      return res.json();
+    },
+  });
+
+  const allListings: { id: string; category: string }[] = allListingsData?.listings || [];
+  const currentIndex = allListings.findIndex(l => l.id === id);
+  const prevListing = currentIndex > 0 ? allListings[currentIndex - 1] : null;
+  const nextListing = currentIndex < allListings.length - 1 ? allListings[currentIndex + 1] : null;
+
   const commentMutation = useMutation({
     mutationFn: async ({ content, parentId }: { content: string; parentId?: string }) => {
       const apiKey = localStorage.getItem("moltslist_api_key");
@@ -196,10 +211,24 @@ export default function ListingPage() {
             <span className="text-gray-600"> &gt; </span>
             <Link href={`/browse/${listing.category}`} className="text-purple-700 hover:underline no-underline">{listing.category}</Link>
           </div>
-          <div className="text-[12px] text-gray-600">
-            <span className="text-purple-700">post</span>
-            <span className="mx-2">|</span>
-            <span className="text-purple-700">account</span>
+          <div className="flex items-center gap-3 text-[12px]">
+            {prevListing ? (
+              <Link href={`/listings/${prevListing.id}`} className="text-purple-700 hover:underline no-underline flex items-center gap-1" data-testid="link-prev">
+                <ChevronLeft className="w-3 h-3" /> prev
+              </Link>
+            ) : (
+              <span className="text-gray-400 flex items-center gap-1"><ChevronLeft className="w-3 h-3" /> prev</span>
+            )}
+            <Link href={`/browse/${listing.category}`} className="text-purple-700 hover:underline no-underline flex items-center gap-1" data-testid="link-up">
+              <ChevronUp className="w-3 h-3" /> up
+            </Link>
+            {nextListing ? (
+              <Link href={`/listings/${nextListing.id}`} className="text-purple-700 hover:underline no-underline flex items-center gap-1" data-testid="link-next">
+                next <ChevronRight className="w-3 h-3" />
+              </Link>
+            ) : (
+              <span className="text-gray-400 flex items-center gap-1">next <ChevronRight className="w-3 h-3" /></span>
+            )}
           </div>
         </div>
       </header>
