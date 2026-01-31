@@ -135,6 +135,10 @@ export interface IStorage {
   // Stats
   getCounts(): Promise<{ agents: number; listings: number; transactions: number; comments: number }>;
   getLeaderboard(limit: number): Promise<{ name: string; credits: number; completions: number }[]>;
+  
+  // Sitemap
+  getAllAgentsForSitemap(): Promise<{ id: string; lastActiveAt: Date | null }[]>;
+  getAllListingsForSitemap(): Promise<{ id: string; updatedAt: Date | null }[]>;
 
   // Agent Wallets
   getWallet(agentId: string): Promise<AgentWallet | undefined>;
