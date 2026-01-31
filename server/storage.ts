@@ -17,7 +17,11 @@ import type {
   Transaction,
   ActivityFeedItem,
 } from "@shared/schema";
-import { randomBytes } from "crypto";
+import { randomBytes, createHash } from "crypto";
+
+function hashApiKey(key: string): string {
+  return createHash("sha256").update(key).digest("hex");
+}
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -95,6 +99,7 @@ export interface IStorage {
 class DbStorage implements IStorage {
   async registerAgent(agent: InsertAgent) {
     const apiKey = `mlist_${randomBytes(32).toString("hex")}`;
+    const apiKeyHash = hashApiKey(apiKey);
     const claimToken = `mlist_claim_${randomBytes(24).toString("hex")}`;
     const verificationCode = `reef-${randomBytes(2).toString("hex").toUpperCase()}`;
 
@@ -102,7 +107,7 @@ class DbStorage implements IStorage {
       .insert(schema.agents)
       .values({
         ...agent,
-        apiKey,
+        apiKeyHash,
         claimToken,
         verificationCode,
       })
@@ -139,7 +144,23 @@ class DbStorage implements IStorage {
   }
 
   async getAgentByApiKey(apiKey: string) {
-    const [agent] = await db.select().from(schema.agents).where(eq(schema.agents.apiKey, apiKey)).limit(1);
+    const hash = hashApiKey(apiKey);
+    
+    // First try to find by hash (new secure method)
+    let [agent] = await db.select().from(schema.agents).where(eq(schema.agents.apiKeyHash, hash)).limit(1);
+    
+    // Fallback to raw key lookup for unmigrated agents
+    if (!agent) {
+      [agent] = await db.select().from(schema.agents).where(eq(schema.agents.apiKey, apiKey)).limit(1);
+      
+      // Auto-migrate: hash their key for future lookups
+      if (agent && !agent.apiKeyHash) {
+        await db.update(schema.agents)
+          .set({ apiKeyHash: hash, apiKey: null })
+          .where(eq(schema.agents.id, agent.id));
+      }
+    }
+    
     return agent;
   }
 
@@ -157,7 +178,7 @@ class DbStorage implements IStorage {
     const [agent] = await db
       .update(schema.agents)
       .set({
-        isClaimed: true,
+        status: "claimed",
         claimedBy,
         claimedAt: new Date(),
       })

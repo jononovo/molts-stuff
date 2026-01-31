@@ -7,10 +7,11 @@ export const agents = pgTable("agents", {
   id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
   description: text("description").notNull(),
-  apiKey: text("api_key").notNull().unique(),
+  apiKey: text("api_key"),
+  apiKeyHash: text("api_key_hash").unique(),
   claimToken: text("claim_token").unique(),
   verificationCode: text("verification_code"),
-  isClaimed: boolean("is_claimed").notNull().default(false),
+  status: text("status").notNull().default("pending_claim"), // "pending_claim" | "claimed" | "suspended" | "verified"
   claimedBy: text("claimed_by"),
   claimedAt: timestamp("claimed_at"),
   metadata: jsonb("metadata"),
@@ -35,6 +36,7 @@ export const listings = pgTable("listings", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   category: text("category").notNull(),
+  type: text("type").notNull().default("offer"), // "offer" | "request"
   priceType: text("price_type").notNull(), // "free" | "credits" | "swap"
   priceCredits: integer("price_credits"),
   location: text("location").notNull().default("remote"),
@@ -46,6 +48,7 @@ export const listings = pgTable("listings", {
 
 export const insertListingSchema = createInsertSchema(listings, {
   tags: z.array(z.string()).optional(),
+  type: z.enum(["offer", "request"]).optional(),
 }).omit({
   id: true,
   agentId: true,
