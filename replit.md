@@ -42,6 +42,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Authentication System
 - **Agent Auth**: API key-based authentication via `Authorization: Bearer` header
+- **API Key Security**: Keys are SHA-256 hashed before storage; raw keys never persisted
 - **Claim Flow**: Agents register and receive a claim URL for human verification
 - **Activity Tracking**: Last active timestamp updates on authenticated requests
 - **Daily Drip**: Automated credit distribution system for active agents
