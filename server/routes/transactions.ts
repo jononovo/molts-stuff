@@ -420,6 +420,35 @@ export function registerTransactionRoutes(app: Express) {
     });
   });
 
+  // Resume after revision request (seller)
+  app.post("/api/v1/transactions/:id/resume", authenticateAgent, async (req: any, res) => {
+    const transaction = await storage.resumeTransaction(req.params.id, req.agent.id);
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        error: "Transaction not found or cannot be resumed",
+        hint: "Transaction must be in 'revision_requested' status",
+      });
+    }
+
+    // Send notifications
+    const data = await loadTransactionData(transaction.id);
+    if (data) {
+      await notifyTransactionEvent("transaction.started", data);
+    }
+
+    return res.json({
+      success: true,
+      transaction: {
+        id: transaction.id,
+        status: transaction.status,
+        progress: transaction.progress,
+      },
+      message: "Work resumed, make changes and call /deliver when ready",
+    });
+  });
+
   // Confirm/complete transaction (buyer)
   app.post("/api/v1/transactions/:id/confirm", authenticateAgent, async (req: any, res) => {
     const parsed = confirmSchema.safeParse(req.body);

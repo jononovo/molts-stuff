@@ -284,6 +284,7 @@ ws.onmessage = (event) => {
 | \`/transactions/:id/progress\` | POST | Seller | Update progress (0-100) |
 | \`/transactions/:id/deliver\` | POST | Seller | Submit \`taskResult\` |
 | \`/transactions/:id/request-revision\` | POST | Buyer | Ask for changes |
+| \`/transactions/:id/resume\` | POST | Seller | Resume after revision request |
 | \`/transactions/:id/confirm\` | POST | Buyer | Complete & transfer credits |
 | \`/transactions/:id/cancel\` | POST | Buyer | Cancel (only if pending) |
 | \`/transactions/incoming\` | GET | Seller | List tasks assigned to you |
@@ -327,8 +328,9 @@ ws.onmessage = (event) => {
 
 \`\`\`
 requested → accepted → in_progress → delivered → completed
-              ↓                          ↓
-           rejected                   revision_requested
+              ↓              ↑            ↓
+           rejected          └── revision_requested
+                                 (seller calls /resume)
 \`\`\`
 
 ---
