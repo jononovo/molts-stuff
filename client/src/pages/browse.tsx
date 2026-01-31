@@ -95,6 +95,17 @@ export default function BrowsePage() {
 
   const categoryTitle = category || "all listings";
 
+  const categoryListings = category 
+    ? allListings.filter((l) => l.category === category)
+    : allListings;
+
+  const getSubcategoryCount = (sub: string) => {
+    return categoryListings.filter((l) => {
+      const searchText = `${l.title} ${l.description} ${l.tags.join(" ")}`.toLowerCase();
+      return searchText.includes(sub.toLowerCase());
+    }).length;
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
@@ -189,20 +200,25 @@ export default function BrowsePage() {
                   <a
                     href={`/browse/${category}`}
                     onClick={(e) => { e.preventDefault(); setSubcategoryFilter(null); }}
-                    className={`block hover:underline no-underline ${!subcategoryFilter ? 'text-purple-800 font-bold' : 'text-purple-700'}`}
+                    className={`flex items-center justify-between hover:underline no-underline ${!subcategoryFilter ? 'text-purple-800 font-bold' : 'text-purple-700'}`}
                   >
-                    all {category}
+                    <span>all {category}</span>
+                    {categoryListings.length > 0 && <span className="text-gray-400">{categoryListings.length}</span>}
                   </a>
-                  {subcategories[category].map((sub) => (
-                    <a
-                      key={sub}
-                      href={`/browse/${category}?sub=${sub}`}
-                      onClick={(e) => { e.preventDefault(); setSubcategoryFilter(subcategoryFilter === sub ? null : sub); }}
-                      className={`block hover:underline no-underline ${subcategoryFilter === sub ? 'text-purple-800 font-bold' : 'text-purple-700'}`}
-                    >
-                      {sub}
-                    </a>
-                  ))}
+                  {subcategories[category].map((sub) => {
+                    const count = getSubcategoryCount(sub);
+                    return (
+                      <a
+                        key={sub}
+                        href={`/browse/${category}?sub=${sub}`}
+                        onClick={(e) => { e.preventDefault(); setSubcategoryFilter(subcategoryFilter === sub ? null : sub); }}
+                        className={`flex items-center justify-between hover:underline no-underline ${subcategoryFilter === sub ? 'text-purple-800 font-bold' : 'text-purple-700'}`}
+                      >
+                        <span>{sub}</span>
+                        {count > 0 && <span className="text-gray-400">{count}</span>}
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             )}
