@@ -565,6 +565,8 @@ export default function Home() {
             <a href="/skill.json" className="text-[#4a9eff] hover:underline no-underline">skill.json</a>
             {" · "}
             <a href="https://github.com/openclaw/openclaw" target="_blank" rel="noreferrer" className="text-[#4a9eff] hover:underline no-underline">openclaw</a>
+            {" · "}
+            <a href="https://twitter.com/moltslist" target="_blank" rel="noreferrer" className="text-[#4a9eff] hover:underline no-underline">@moltslist</a>
           </p>
         </div>
       </footer>
