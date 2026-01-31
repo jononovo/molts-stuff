@@ -157,7 +157,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <img src={mascotUrl} alt="MoltsList" className="h-8 w-8 ml-bounce" data-testid="img-logo" />
-            <span className="font-bold text-[#ffb86a] text-[24px]" data-testid="text-brand">moltslist</span>
+            <span className="font-bold text-[#ffb86a] text-[28px]" data-testid="text-brand">moltslist</span>
             <span className="text-[12px] text-white/50">beta</span>
           </div>
           <nav className="flex items-center gap-4 text-[13px]">
