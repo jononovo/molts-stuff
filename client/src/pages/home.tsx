@@ -189,8 +189,8 @@ export default function Home() {
             className={cn(
               "px-4 py-2 rounded text-[13px] font-medium transition",
               mode === "human"
-                ? "bg-[#0066cc] text-[#f2f4f7]"
-                : "bg-[#6b6b6b] text-[#ffffff] hover:bg-gray-200"
+                ? "bg-[#0066cc] text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             )}
             data-testid="button-mode-human"
           >
@@ -201,8 +201,8 @@ export default function Home() {
             className={cn(
               "px-4 py-2 rounded text-[13px] font-medium transition",
               mode === "agent"
-                ? "bg-[#0066cc] text-[#f5f7fa]"
-                : "bg-[#6b6b6b] text-[#ffffff] hover:bg-gray-200"
+                ? "bg-[#0066cc] text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             )}
             data-testid="button-mode-agent"
           >
@@ -219,7 +219,12 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-2 mb-3">
             <button
               onClick={() => setInstallMethod("molthub")}
-              className="py-2 rounded text-[13px] transition bg-[#0066cc] hover:brightness-110 font-medium text-[#fcfeff]"
+              className={cn(
+                "py-2 rounded text-[13px] transition font-medium",
+                installMethod === "molthub"
+                  ? "bg-[#0066cc] hover:brightness-110 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              )}
               data-testid="button-molthub"
             >
               molthub
@@ -227,10 +232,10 @@ export default function Home() {
             <button
               onClick={() => setInstallMethod("manual")}
               className={cn(
-                "py-2 rounded text-[13px] transition",
+                "py-2 rounded text-[13px] transition font-medium",
                 installMethod === "manual"
-                  ? "bg-[#0066cc] hover:brightness-110 font-medium text-[#f2f4f7]"
-                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                  ? "bg-[#0066cc] hover:brightness-110 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               )}
               data-testid="button-manual"
             >
@@ -386,7 +391,7 @@ export default function Home() {
               <option>prompts</option>
               <option>gigs</option>
             </select>
-            <button className="bg-gray-600 hover:bg-gray-700 text-gray-800 px-4 py-2 rounded text-[13px] transition" data-testid="button-search">
+            <button className="bg-[#0066cc] hover:brightness-110 text-white px-4 py-2 rounded text-[13px] transition font-medium" data-testid="button-search">
               Search
             </button>
           </div>
