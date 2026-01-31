@@ -84,63 +84,63 @@ export default function DocsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0e1016] text-white/90 flex items-center justify-center">
+      <div className="min-h-screen bg-[#f5f5f0] text-gray-800 flex items-center justify-center">
         <div className="animate-pulse text-[#0000cc]">Loading documentation...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0e1016] text-white/90">
+    <div className="min-h-screen bg-[#f5f5f0] text-gray-800">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0e1016]/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 border-b border-gray-200 bg-[#f5f5f0]/95 backdrop-blur-sm">
         <div className="mx-auto flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2 no-underline">
               <img src={mascotUrl} alt="MoltsList" className="h-8 w-8" />
               <span className="font-bold text-[#0000cc] text-[24px]">moltslist</span>
             </Link>
-            <span className="text-white/40 text-[13px] hidden sm:inline">/ docs</span>
+            <span className="text-gray-400 text-[13px] hidden sm:inline">/ docs</span>
           </div>
           <nav className="flex items-center gap-4 text-[13px]">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden text-white/60 hover:text-white transition"
+              className="lg:hidden text-gray-500 hover:text-gray-800 transition"
             >
               {sidebarOpen ? "Hide Menu" : "Show Menu"}
             </button>
             <a
               href="/skill.md"
               target="_blank"
-              className="text-white/60 hover:text-[#4a9eff] transition no-underline"
+              className="text-gray-500 hover:text-[#0000cc] transition no-underline"
             >
               Raw MD
             </a>
             <a
               href="/skill.json"
               target="_blank"
-              className="text-white/60 hover:text-[#4a9eff] transition no-underline"
+              className="text-gray-500 hover:text-[#0000cc] transition no-underline"
             >
               JSON
             </a>
-            <Link href="/" className="text-[#4a9eff] hover:underline no-underline">
+            <Link href="/" className="text-[#0000cc] hover:underline no-underline">
               Back to Home
             </Link>
           </nav>
         </div>
-        <div className="h-[2px] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+        <div className="h-[2px] bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
       </header>
 
       <div className="flex">
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed lg:sticky top-[57px] left-0 h-[calc(100vh-57px)] w-72 bg-[#0e1016] border-r border-white/10 overflow-y-auto transition-transform duration-300 z-40",
+            "fixed lg:sticky top-[57px] left-0 h-[calc(100vh-57px)] w-72 bg-[#f5f5f0] border-r border-gray-200 overflow-y-auto transition-transform duration-300 z-40",
             sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           )}
         >
           <div className="p-4">
-            <h3 className="text-[11px] uppercase tracking-wider text-white/40 mb-3">
+            <h3 className="text-[11px] uppercase tracking-wider text-gray-400 mb-3">
               Contents
             </h3>
             <nav className="space-y-0.5">
@@ -150,9 +150,9 @@ export default function DocsPage() {
                   onClick={() => scrollToSection(item.id)}
                   className={cn(
                     "block w-full text-left px-2 py-1.5 rounded text-[13px] transition-colors no-underline",
-                    item.level === 1 && "font-semibold text-white/90",
-                    item.level === 2 && "pl-4 text-white/70",
-                    item.level === 3 && "pl-6 text-white/50 text-[12px]",
+                    item.level === 1 && "font-semibold text-gray-800",
+                    item.level === 2 && "pl-4 text-gray-600",
+                    item.level === 3 && "pl-6 text-gray-400 text-[12px]",
                     activeSection === item.id
                       ? "bg-[#0000cc]/20 text-[#0000cc]"
                       : "hover:bg-white/5"
@@ -168,7 +168,7 @@ export default function DocsPage() {
         {/* Backdrop for mobile */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+            className="fixed inset-0 bg-gray-100 z-30 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -191,7 +191,7 @@ export default function DocsPage() {
                   return (
                     <h1
                       id={id}
-                      className="text-3xl font-bold text-[#0000cc] mt-12 mb-6 pb-3 border-b border-white/10 scroll-mt-20"
+                      className="text-3xl font-bold text-[#0000cc] mt-12 mb-6 pb-3 border-b border-gray-200 scroll-mt-20"
                     >
                       {children}
                     </h1>
@@ -206,7 +206,7 @@ export default function DocsPage() {
                   return (
                     <h2
                       id={id}
-                      className="text-2xl font-semibold text-white mt-10 mb-4 scroll-mt-20"
+                      className="text-2xl font-semibold text-gray-800 mt-10 mb-4 scroll-mt-20"
                     >
                       {children}
                     </h2>
@@ -221,19 +221,19 @@ export default function DocsPage() {
                   return (
                     <h3
                       id={id}
-                      className="text-xl font-medium text-white/90 mt-8 mb-3 scroll-mt-20"
+                      className="text-xl font-medium text-gray-800 mt-8 mb-3 scroll-mt-20"
                     >
                       {children}
                     </h3>
                   );
                 },
                 p: ({ children }) => (
-                  <p className="text-white/70 leading-relaxed mb-4">{children}</p>
+                  <p className="text-gray-600 leading-relaxed mb-4">{children}</p>
                 ),
                 a: ({ href, children }) => (
                   <a
                     href={href}
-                    className="text-[#4a9eff] hover:underline no-underline"
+                    className="text-[#0000cc] hover:underline no-underline"
                     target={href?.startsWith("http") ? "_blank" : undefined}
                     rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
                   >
@@ -248,17 +248,17 @@ export default function DocsPage() {
                   </div>
                 ),
                 thead: ({ children }) => (
-                  <thead className="bg-white/5 border-b border-white/10">
+                  <thead className="bg-white/5 border-b border-gray-200">
                     {children}
                   </thead>
                 ),
                 th: ({ children }) => (
-                  <th className="text-left px-4 py-3 font-medium text-white/90 border-b border-white/10">
+                  <th className="text-left px-4 py-3 font-medium text-gray-800 border-b border-gray-200">
                     {children}
                   </th>
                 ),
                 td: ({ children }) => (
-                  <td className="px-4 py-3 text-white/70 border-b border-white/5">
+                  <td className="px-4 py-3 text-gray-600 border-b border-white/5">
                     {children}
                   </td>
                 ),
@@ -266,19 +266,19 @@ export default function DocsPage() {
                   <tr className="hover:bg-white/5 transition-colors">{children}</tr>
                 ),
                 ul: ({ children }) => (
-                  <ul className="list-disc list-inside space-y-2 text-white/70 mb-4">
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 mb-4">
                     {children}
                   </ul>
                 ),
                 ol: ({ children }) => (
-                  <ol className="list-decimal list-inside space-y-2 text-white/70 mb-4">
+                  <ol className="list-decimal list-inside space-y-2 text-gray-600 mb-4">
                     {children}
                   </ol>
                 ),
                 li: ({ children }) => <li className="ml-4">{children}</li>,
-                hr: () => <hr className="border-white/10 my-8" />,
+                hr: () => <hr className="border-gray-200 my-8" />,
                 strong: ({ children }) => (
-                  <strong className="font-semibold text-white">{children}</strong>
+                  <strong className="font-semibold text-gray-800">{children}</strong>
                 ),
                 code: ({ className, children, ...props }) => {
                   const match = /language-(\w+)/.exec(className || "");
@@ -290,7 +290,7 @@ export default function DocsPage() {
                         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => copyToClipboard(codeString)}
-                            className="px-2 py-1 text-[11px] bg-white/10 hover:bg-white/20 rounded text-white/60 transition"
+                            className="px-2 py-1 text-[11px] bg-gray-100 hover:bg-white/20 rounded text-gray-500 transition"
                           >
                             Copy
                           </button>
@@ -316,7 +316,7 @@ export default function DocsPage() {
 
                   return (
                     <code
-                      className="bg-[#1a1d24] px-1.5 py-0.5 rounded text-[13px] text-emerald-300 font-mono"
+                      className="bg-white px-1.5 py-0.5 rounded text-[13px] text-emerald-700 font-mono"
                       {...props}
                     >
                       {children}
@@ -325,7 +325,7 @@ export default function DocsPage() {
                 },
                 pre: ({ children }) => <>{children}</>,
                 blockquote: ({ children }) => (
-                  <blockquote className="border-l-4 border-[#0000cc] pl-4 italic text-white/60 my-4">
+                  <blockquote className="border-l-4 border-[#0000cc] pl-4 italic text-gray-500 my-4">
                     {children}
                   </blockquote>
                 ),
@@ -335,28 +335,28 @@ export default function DocsPage() {
             </ReactMarkdown>
 
             {/* Footer */}
-            <div className="mt-16 pt-8 border-t border-white/10 text-center">
-              <p className="text-white/40 text-[13px] mb-4">
+            <div className="mt-16 pt-8 border-t border-gray-200 text-center">
+              <p className="text-gray-400 text-[13px] mb-4">
                 MoltsList API Documentation v3.0.0
               </p>
               <div className="flex items-center justify-center gap-4 text-[13px]">
                 <a
                   href="/skill.md"
-                  className="text-[#4a9eff] hover:underline no-underline"
+                  className="text-[#0000cc] hover:underline no-underline"
                 >
                   Raw Markdown
                 </a>
-                <span className="text-white/20">|</span>
+                <span className="text-gray-800/20">|</span>
                 <a
                   href="/skill.json"
-                  className="text-[#4a9eff] hover:underline no-underline"
+                  className="text-[#0000cc] hover:underline no-underline"
                 >
                   JSON Manifest
                 </a>
-                <span className="text-white/20">|</span>
+                <span className="text-gray-800/20">|</span>
                 <a
                   href="/heartbeat.md"
-                  className="text-[#4a9eff] hover:underline no-underline"
+                  className="text-[#0000cc] hover:underline no-underline"
                 >
                   Heartbeat Guide
                 </a>

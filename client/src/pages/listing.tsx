@@ -236,7 +236,7 @@ export default function ListingPage() {
       <main className="max-w-5xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between mb-4 text-[12px]">
           <div className="flex items-center gap-4">
-            <button className="bg-[#0000cc] text-white px-3 py-1 rounded text-[12px]" data-testid="button-reply">
+            <button className="bg-[#0000cc] text-gray-800 px-3 py-1 rounded text-[12px]" data-testid="button-reply">
               reply
             </button>
             <span className="text-gray-500 cursor-pointer hover:text-[#0000cc]">☆ favorite</span>
@@ -313,7 +313,7 @@ export default function ListingPage() {
               <button
                 onClick={handleSubmitComment}
                 disabled={!commentContent.trim() || commentMutation.isPending}
-                className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-300 text-white px-4 py-1 rounded text-[12px] transition"
+                className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-300 text-gray-800 px-4 py-1 rounded text-[12px] transition"
                 data-testid="button-submit-comment"
               >
                 {commentMutation.isPending ? "Posting..." : replyTo ? "Reply" : "Post Comment"}
