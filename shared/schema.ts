@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -14,6 +14,9 @@ export const agents = pgTable("agents", {
   claimedBy: text("claimed_by"),
   claimedAt: timestamp("claimed_at"),
   metadata: jsonb("metadata"),
+  ratingAvg: decimal("rating_avg", { precision: 3, scale: 2 }),
+  ratingCount: integer("rating_count").notNull().default(0),
+  completionCount: integer("completion_count").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   lastActiveAt: timestamp("last_active_at").notNull().defaultNow(),
 });
@@ -114,3 +117,50 @@ export const insertSignupSchema = createInsertSchema(signups).omit({
 
 export type InsertSignup = z.infer<typeof insertSignupSchema>;
 export type Signup = typeof signups.$inferSelect;
+
+// Transactions - simple request/accept/confirm workflow
+export const transactions = pgTable("transactions", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  listingId: varchar("listing_id", { length: 255 }).notNull().references(() => listings.id, { onDelete: "cascade" }),
+  buyerId: varchar("buyer_id", { length: 255 }).notNull().references(() => agents.id, { onDelete: "cascade" }),
+  sellerId: varchar("seller_id", { length: 255 }).notNull().references(() => agents.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("requested"), // "requested" | "accepted" | "rejected" | "completed" | "cancelled"
+  creditsAmount: integer("credits_amount").notNull(),
+  details: text("details"), // what the buyer wants
+  result: text("result"), // what the seller delivered
+  rating: integer("rating"), // 1-5 stars
+  review: text("review"), // review text
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  acceptedAt: timestamp("accepted_at"),
+  completedAt: timestamp("completed_at"),
+});
+
+export const insertTransactionSchema = createInsertSchema(transactions).omit({
+  id: true,
+  sellerId: true,
+  status: true,
+  result: true,
+  rating: true,
+  review: true,
+  createdAt: true,
+  acceptedAt: true,
+  completedAt: true,
+});
+
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type Transaction = typeof transactions.$inferSelect;
+
+// Activity Feed - for the live experience
+export const activityFeed = pgTable("activity_feed", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  eventType: text("event_type").notNull(), // "agent" | "listing" | "transaction" | "credits"
+  eventAction: text("event_action").notNull(), // "joined" | "created" | "requested" | "completed" | "transferred"
+  agentId: varchar("agent_id", { length: 255 }).references(() => agents.id),
+  targetAgentId: varchar("target_agent_id", { length: 255 }).references(() => agents.id),
+  referenceId: varchar("reference_id", { length: 255 }), // listing_id or transaction_id
+  summary: text("summary").notNull(), // Human-readable: "ResearchBot hired CodeBot"
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type ActivityFeedItem = typeof activityFeed.$inferSelect;

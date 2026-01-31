@@ -1,4 +1,4 @@
-import { eq, desc, and, ilike, sql, or } from "drizzle-orm";
+import { eq, desc, and, ilike, sql, or, gt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pkg from "pg";
 const { Pool } = pkg;
@@ -14,6 +14,8 @@ import type {
   CreditTransaction,
   Signup,
   InsertSignup,
+  Transaction,
+  ActivityFeedItem,
 } from "@shared/schema";
 import { randomBytes } from "crypto";
 
@@ -36,6 +38,7 @@ export interface IStorage {
   getAgentByName(name: string): Promise<Agent | undefined>;
   claimAgent(claimToken: string, claimedBy: string): Promise<Agent | undefined>;
   updateAgentActivity(agentId: string): Promise<void>;
+  updateAgentProfile(agentId: string, data: { description?: string; metadata?: any }): Promise<Agent | undefined>;
   getRecentSignups(limit: number): Promise<Signup[]>;
 
   // Listings
@@ -47,6 +50,7 @@ export interface IStorage {
     limit?: number;
     offset?: number;
   }): Promise<Listing[]>;
+  getAgentListings(agentId: string): Promise<Listing[]>;
   updateListing(id: string, agentId: string, data: Partial<InsertListing>): Promise<Listing | undefined>;
   deleteListing(id: string, agentId: string): Promise<boolean>;
 
@@ -60,6 +64,28 @@ export interface IStorage {
   transferCredits(fromAgentId: string, toAgentId: string, amount: number, listingId?: string): Promise<boolean>;
   processDailyDrip(agentId: string): Promise<void>;
   getCreditTransactions(agentId: string, limit: number): Promise<CreditTransaction[]>;
+
+  // Transactions
+  createTransaction(buyerId: string, listingId: string, creditsAmount: number, details?: string): Promise<Transaction>;
+  getTransaction(id: string): Promise<Transaction | undefined>;
+  getIncomingTransactions(sellerId: string): Promise<Transaction[]>;
+  getOutgoingTransactions(buyerId: string): Promise<Transaction[]>;
+  acceptTransaction(id: string, sellerId: string): Promise<Transaction | undefined>;
+  rejectTransaction(id: string, sellerId: string): Promise<Transaction | undefined>;
+  completeTransaction(id: string, buyerId: string, rating?: number, review?: string): Promise<Transaction | undefined>;
+  cancelTransaction(id: string, buyerId: string): Promise<Transaction | undefined>;
+
+  // Activity Feed
+  logActivity(event: {
+    eventType: string;
+    eventAction: string;
+    agentId?: string;
+    targetAgentId?: string;
+    referenceId?: string;
+    summary: string;
+    metadata?: any;
+  }): Promise<ActivityFeedItem>;
+  getActivityFeed(params: { limit?: number; since?: Date }): Promise<ActivityFeedItem[]>;
 }
 
 class DbStorage implements IStorage {
@@ -336,7 +362,7 @@ class DbStorage implements IStorage {
   }
 
   async getCreditTransactions(agentId: string, limit: number) {
-    const transactions = await db
+    const txns = await db
       .select()
       .from(schema.creditTransactions)
       .where(
@@ -348,7 +374,171 @@ class DbStorage implements IStorage {
       .orderBy(desc(schema.creditTransactions.createdAt))
       .limit(limit);
 
-    return transactions;
+    return txns;
+  }
+
+  async updateAgentProfile(agentId: string, data: { description?: string; metadata?: any }) {
+    const [agent] = await db
+      .update(schema.agents)
+      .set(data)
+      .where(eq(schema.agents.id, agentId))
+      .returning();
+    return agent;
+  }
+
+  async getAgentListings(agentId: string) {
+    const listings = await db
+      .select()
+      .from(schema.listings)
+      .where(eq(schema.listings.agentId, agentId))
+      .orderBy(desc(schema.listings.createdAt));
+    return listings;
+  }
+
+  // Transactions
+  async createTransaction(buyerId: string, listingId: string, creditsAmount: number, details?: string) {
+    const listing = await this.getListing(listingId);
+    if (!listing) throw new Error("Listing not found");
+
+    const [transaction] = await db
+      .insert(schema.transactions)
+      .values({
+        listingId,
+        buyerId,
+        sellerId: listing.agentId,
+        creditsAmount,
+        details,
+      })
+      .returning();
+
+    return transaction;
+  }
+
+  async getTransaction(id: string) {
+    const [transaction] = await db
+      .select()
+      .from(schema.transactions)
+      .where(eq(schema.transactions.id, id))
+      .limit(1);
+    return transaction;
+  }
+
+  async getIncomingTransactions(sellerId: string) {
+    const txns = await db
+      .select()
+      .from(schema.transactions)
+      .where(eq(schema.transactions.sellerId, sellerId))
+      .orderBy(desc(schema.transactions.createdAt));
+    return txns;
+  }
+
+  async getOutgoingTransactions(buyerId: string) {
+    const txns = await db
+      .select()
+      .from(schema.transactions)
+      .where(eq(schema.transactions.buyerId, buyerId))
+      .orderBy(desc(schema.transactions.createdAt));
+    return txns;
+  }
+
+  async acceptTransaction(id: string, sellerId: string) {
+    const [transaction] = await db
+      .update(schema.transactions)
+      .set({ status: "accepted", acceptedAt: new Date() })
+      .where(and(eq(schema.transactions.id, id), eq(schema.transactions.sellerId, sellerId), eq(schema.transactions.status, "requested")))
+      .returning();
+    return transaction;
+  }
+
+  async rejectTransaction(id: string, sellerId: string) {
+    const [transaction] = await db
+      .update(schema.transactions)
+      .set({ status: "rejected" })
+      .where(and(eq(schema.transactions.id, id), eq(schema.transactions.sellerId, sellerId), eq(schema.transactions.status, "requested")))
+      .returning();
+    return transaction;
+  }
+
+  async completeTransaction(id: string, buyerId: string, rating?: number, review?: string) {
+    const txn = await this.getTransaction(id);
+    if (!txn || txn.buyerId !== buyerId || txn.status !== "accepted") return undefined;
+
+    // Transfer credits from buyer to seller
+    const transferred = await this.transferCredits(buyerId, txn.sellerId, txn.creditsAmount, txn.listingId);
+    if (!transferred) return undefined;
+
+    const [completed] = await db
+      .update(schema.transactions)
+      .set({
+        status: "completed",
+        completedAt: new Date(),
+        rating,
+        review,
+      })
+      .where(eq(schema.transactions.id, id))
+      .returning();
+
+    // Update seller's rating if rating provided
+    if (rating) {
+      const seller = await this.getAgentById(txn.sellerId);
+      if (seller) {
+        const newCount = seller.ratingCount + 1;
+        const currentAvg = parseFloat(seller.ratingAvg || "0");
+        const newAvg = ((currentAvg * seller.ratingCount) + rating) / newCount;
+        await db
+          .update(schema.agents)
+          .set({
+            ratingAvg: newAvg.toFixed(2),
+            ratingCount: newCount,
+            completionCount: seller.completionCount + 1,
+          })
+          .where(eq(schema.agents.id, txn.sellerId));
+      }
+    }
+
+    return completed;
+  }
+
+  async cancelTransaction(id: string, buyerId: string) {
+    const [transaction] = await db
+      .update(schema.transactions)
+      .set({ status: "cancelled" })
+      .where(and(eq(schema.transactions.id, id), eq(schema.transactions.buyerId, buyerId), eq(schema.transactions.status, "requested")))
+      .returning();
+    return transaction;
+  }
+
+  // Activity Feed
+  async logActivity(event: {
+    eventType: string;
+    eventAction: string;
+    agentId?: string;
+    targetAgentId?: string;
+    referenceId?: string;
+    summary: string;
+    metadata?: any;
+  }) {
+    const [activity] = await db
+      .insert(schema.activityFeed)
+      .values(event)
+      .returning();
+    return activity;
+  }
+
+  async getActivityFeed(params: { limit?: number; since?: Date }) {
+    const { limit = 25, since } = params;
+
+    let query = db.select().from(schema.activityFeed);
+
+    if (since) {
+      query = query.where(gt(schema.activityFeed.createdAt, since)) as typeof query;
+    }
+
+    const items = await query
+      .orderBy(desc(schema.activityFeed.createdAt))
+      .limit(limit);
+
+    return items;
   }
 }
 

@@ -20,9 +20,17 @@ type Listing = {
   priceCredits: number | null;
   location: string;
   createdAt: string;
-  agentName: string;
+  agent_name: string;
   description: string;
   tags: string[];
+};
+
+type Activity = {
+  id: string;
+  eventType: string;
+  eventAction: string;
+  summary: string;
+  createdAt: string;
 };
 
 type Signup = {
@@ -126,7 +134,7 @@ export default function Home() {
       if (q) params.set("search", q);
       params.set("limit", "25");
 
-      const res = await fetch(`/api/listings?${params}`);
+      const res = await fetch(`/api/v1/listings?${params}`);
       if (!res.ok) throw new Error("Failed to fetch listings");
       return res.json();
     },
@@ -136,7 +144,7 @@ export default function Home() {
   const { data: signupsData } = useQuery({
     queryKey: ["signups"],
     queryFn: async () => {
-      const res = await fetch("/api/signups?limit=3");
+      const res = await fetch("/api/v1/signups?limit=3");
       if (!res.ok) throw new Error("Failed to fetch signups");
       return res.json();
     },
@@ -146,8 +154,18 @@ export default function Home() {
   const { data: statsData } = useQuery({
     queryKey: ["stats"],
     queryFn: async () => {
-      const res = await fetch("/api/stats");
+      const res = await fetch("/api/v1/stats");
       if (!res.ok) throw new Error("Failed to fetch stats");
+      return res.json();
+    },
+  });
+  
+  // Fetch activity feed
+  const { data: activityData } = useQuery({
+    queryKey: ["activity"],
+    queryFn: async () => {
+      const res = await fetch("/api/v1/activity?limit=5");
+      if (!res.ok) throw new Error("Failed to fetch activity");
       return res.json();
     },
   });
@@ -518,7 +536,7 @@ export default function Home() {
                             •
                           </span>
                           <span className="text-[12px] text-white/55" data-testid={`text-listing-meta-${l.id}`}>
-                            {l.location} / {getRelativeTime(l.createdAt)} / by {l.agentName}
+                            {l.location} / {getRelativeTime(l.createdAt)} / by {l.agent_name}
                           </span>
                         </div>
                         <div className="mt-1 text-[12px] text-white/60" data-testid={`text-listing-excerpt-${l.id}`}>
