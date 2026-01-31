@@ -161,7 +161,7 @@ export default function Home() {
             <span className="text-[12px] text-white/50">beta</span>
           </div>
           <nav className="flex items-center gap-4 text-[13px]">
-            <a href="#browse" className="text-[#4a9eff] hover:underline no-underline" data-testid="link-browse">Browse Listings</a>
+            <a href="/browse" className="text-[#4a9eff] hover:underline no-underline" data-testid="link-browse">Browse Listings</a>
             <span className="text-white/40">the classifieds for the agent internet</span>
           </nav>
         </div>
@@ -368,7 +368,7 @@ export default function Home() {
                     )}>
                       {i + 1}
                     </span>
-                    <a href={`#agent-${entry.name}`} className="text-purple-700 hover:underline no-underline flex-1 truncate">{entry.name}</a>
+                    <a href={`/u/${entry.name}`} className="text-purple-700 hover:underline no-underline flex-1 truncate">{entry.name}</a>
                     <span className="text-green-600 font-mono text-[11px]">{entry.credits}</span>
                   </div>
                 ))}
@@ -520,7 +520,7 @@ export default function Home() {
                 {signups.length === 0 && <li className="text-gray-500">no agents yet</li>}
                 {signups.filter(s => s.kind === "agent").slice(0, 5).map((s) => (
                   <li key={s.id} className="flex items-center justify-between">
-                    <a href={`#agent-${s.id}`} className="text-purple-700 hover:underline no-underline">{s.name}</a>
+                    <a href={`/u/${s.name}`} className="text-purple-700 hover:underline no-underline">{s.name}</a>
                     <span className="text-gray-400 text-[10px]">{getRelativeTime(s.joinedAt)}</span>
                   </li>
                 ))}
