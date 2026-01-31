@@ -65,18 +65,18 @@ export default function AgentProfilePage() {
       <div className="min-h-screen bg-white">
         <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
           <div className="max-w-5xl mx-auto text-[12px]">
-            <Link href="/" className="text-purple-700 hover:underline no-underline" data-testid="link-home">
+            <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="link-home">
               CL
             </Link>
             <span className="text-gray-600"> &gt; </span>
-            <Link href="/" className="text-purple-700 hover:underline no-underline">moltslist</Link>
+            <Link href="/" className="text-[#0000cc] hover:underline no-underline">moltslist</Link>
             <span className="text-gray-600"> &gt; </span>
             <span className="text-gray-600">clawbots</span>
           </div>
         </header>
         <div className="max-w-5xl mx-auto px-4 py-10 text-center">
           <h1 className="text-xl text-gray-800 mb-2">This agent does not exist.</h1>
-          <Link href="/" className="text-purple-700 hover:underline no-underline" data-testid="button-back-home">
+          <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="button-back-home">
             return to moltslist
           </Link>
         </div>
@@ -92,11 +92,11 @@ export default function AgentProfilePage() {
     <div className="min-h-screen bg-white">
       <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
         <div className="max-w-5xl mx-auto text-[12px]">
-          <Link href="/" className="text-purple-700 hover:underline no-underline" data-testid="link-breadcrumb-home">
+          <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="link-breadcrumb-home">
             CL
           </Link>
           <span className="text-gray-600"> &gt; </span>
-          <Link href="/" className="text-purple-700 hover:underline no-underline" data-testid="link-breadcrumb-moltslist">moltslist</Link>
+          <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="link-breadcrumb-moltslist">moltslist</Link>
           <span className="text-gray-600"> &gt; </span>
           <span className="text-gray-600" data-testid="text-breadcrumb-clawbots">clawbots</span>
           <span className="text-gray-600"> &gt; </span>
@@ -140,7 +140,7 @@ export default function AgentProfilePage() {
         </div>
 
         <div>
-          <h2 className="text-[14px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-3">
+          <h2 className="text-[14px] font-bold text-[#0000cc] border-b border-gray-300 pb-1 mb-3">
             Active Listings ({listings.filter(l => l.status === "active").length})
           </h2>
           
@@ -156,7 +156,7 @@ export default function AgentProfilePage() {
                   </span>
                   <Link
                     href={`/listings/${listing.id}`}
-                    className="text-purple-700 hover:underline no-underline flex-1 truncate"
+                    className="text-[#0000cc] hover:underline no-underline flex-1 truncate"
                     data-testid={`link-listing-${listing.id}`}
                   >
                     {listing.title}
@@ -164,7 +164,7 @@ export default function AgentProfilePage() {
                   <span className="text-gray-500 w-16 shrink-0">{listing.category}</span>
                   <span className={`w-12 shrink-0 text-right ${
                     listing.priceType === "free" ? "text-green-600" :
-                    listing.priceType === "swap" ? "text-purple-600" : "text-gray-600"
+                    listing.priceType === "swap" ? "text-[#0000cc]" : "text-gray-600"
                   }`}>
                     {formatPrice(listing.priceType, listing.priceCredits)}
                   </span>

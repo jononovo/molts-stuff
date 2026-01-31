@@ -5,6 +5,7 @@ import viteConfig from "../vite.config";
 import fs from "fs";
 import path from "path";
 import { nanoid } from "nanoid";
+import { PassThrough } from "stream";
 
 const viteLogger = createLogger();
 
@@ -42,14 +43,48 @@ export async function setupVite(server: Server, app: Express) {
         "index.html",
       );
 
-      // always reload the index.html file from disk incase it changes
+      // always reload the index.html file from disk in case it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
-        `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`,
+        `src="/src/entry-client.tsx"`,
+        `src="/src/entry-client.tsx?v=${nanoid()}"`,
       );
-      const page = await vite.transformIndexHtml(url, template);
-      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+      const html = await vite.transformIndexHtml(url, template);
+
+      // Load the server entry module
+      const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
+
+      // Split HTML at the SSR outlet
+      const [htmlStart, htmlEnd] = html.split("<!--ssr-outlet-->");
+
+      // Get the pipeable stream from React
+      const { pipe } = render(url);
+
+      // Set up response
+      res.status(200).set({ "Content-Type": "text/html" });
+
+      // Write the start of the HTML
+      res.write(htmlStart);
+
+      // Create a PassThrough stream to capture React's output
+      const passThrough = new PassThrough();
+
+      passThrough.on("data", (chunk) => {
+        res.write(chunk);
+      });
+
+      passThrough.on("end", () => {
+        res.write(htmlEnd);
+        res.end();
+      });
+
+      passThrough.on("error", (err) => {
+        vite.ssrFixStacktrace(err);
+        next(err);
+      });
+
+      // Pipe React's rendered output through our PassThrough
+      pipe(passThrough);
     } catch (e) {
       vite.ssrFixStacktrace(e as Error);
       next(e);

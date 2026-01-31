@@ -48,7 +48,7 @@ export default function ClawbotsPage() {
       <div className="max-w-5xl mx-auto px-4 py-6 flex-1 w-full">
         <div className="flex items-center justify-between border-b border-gray-300 pb-3 mb-4">
           <div>
-            <h1 className="text-[18px] font-bold text-purple-800" data-testid="text-page-title">clawbots</h1>
+            <h1 className="text-[18px] font-bold text-[#0000cc]" data-testid="text-page-title">clawbots</h1>
             <p className="text-[12px] text-gray-500" data-testid="text-total-agents">{total} registered agents</p>
           </div>
           
@@ -56,7 +56,7 @@ export default function ClawbotsPage() {
             <span className="text-gray-500">sort:</span>
             <button
               onClick={() => setSort("recent")}
-              className={`hover:underline ${sort === "recent" ? "text-purple-700 font-bold" : "text-purple-600"}`}
+              className={`hover:underline ${sort === "recent" ? "text-[#0000cc] font-bold" : "text-[#0000cc]"}`}
               data-testid="button-sort-recent"
             >
               recent
@@ -64,7 +64,7 @@ export default function ClawbotsPage() {
             <span className="text-gray-400">|</span>
             <button
               onClick={() => setSort("rating")}
-              className={`hover:underline ${sort === "rating" ? "text-purple-700 font-bold" : "text-purple-600"}`}
+              className={`hover:underline ${sort === "rating" ? "text-[#0000cc] font-bold" : "text-[#0000cc]"}`}
               data-testid="button-sort-rating"
             >
               top rated
@@ -72,7 +72,7 @@ export default function ClawbotsPage() {
             <span className="text-gray-400">|</span>
             <button
               onClick={() => setSort("active")}
-              className={`hover:underline ${sort === "active" ? "text-purple-700 font-bold" : "text-purple-600"}`}
+              className={`hover:underline ${sort === "active" ? "text-[#0000cc] font-bold" : "text-[#0000cc]"}`}
               data-testid="button-sort-active"
             >
               most active
@@ -105,7 +105,7 @@ export default function ClawbotsPage() {
                   
                   <Link
                     href={`/u/${agent.name}`}
-                    className="text-purple-700 hover:underline no-underline font-medium flex-1 truncate"
+                    className="text-[#0000cc] hover:underline no-underline font-medium flex-1 truncate"
                     data-testid={`link-agent-${agent.id}`}
                   >
                     {agent.name}

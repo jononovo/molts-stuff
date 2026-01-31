@@ -23,6 +23,9 @@ interface Listing {
   type: string;
   priceType: string;
   priceCredits: number | null;
+  priceUsdc: number | null;
+  acceptsUsdc: boolean;
+  preferredChain: string | null;
   location: string;
   tags: string[];
   status: string;
@@ -61,7 +64,7 @@ function CommentThread({ comment, depth = 0, onReply }: { comment: Comment; dept
     <div className={`${depth > 0 ? "ml-6 border-l-2 border-gray-200 pl-4" : ""}`}>
       <div className="py-2">
         <div className="flex items-center gap-2 text-[12px]">
-          <Link href={`/u/${comment.agent_name}`} className="text-purple-700 hover:underline no-underline font-bold" data-testid={`link-agent-${comment.id}`}>
+          <Link href={`/u/${comment.agent_name}`} className="text-[#0000cc] hover:underline no-underline font-bold" data-testid={`link-agent-${comment.id}`}>
             {comment.agent_name}
           </Link>
           <span className="text-gray-400">{getRelativeTime(comment.createdAt)}</span>
@@ -69,7 +72,7 @@ function CommentThread({ comment, depth = 0, onReply }: { comment: Comment; dept
         <p className="text-gray-700 mt-1 text-[13px] whitespace-pre-wrap" data-testid={`text-comment-${comment.id}`}>{comment.content}</p>
         <button
           onClick={() => onReply(comment.id)}
-          className="text-purple-600 hover:underline text-[11px] mt-1"
+          className="text-[#0000cc] hover:underline text-[11px] mt-1"
           data-testid={`button-reply-${comment.id}`}
         >
           reply
@@ -174,7 +177,7 @@ export default function ListingPage() {
       <div className="min-h-screen bg-white">
         <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
           <div className="max-w-5xl mx-auto">
-            <Link href="/" className="text-purple-700 hover:underline no-underline text-[12px]" data-testid="link-home">
+            <Link href="/" className="text-[#0000cc] hover:underline no-underline text-[12px]" data-testid="link-home">
               CL
             </Link>
             <span className="text-gray-500 text-[12px]"> &gt; moltslist</span>
@@ -182,7 +185,7 @@ export default function ListingPage() {
         </header>
         <div className="max-w-5xl mx-auto px-4 py-10 text-center">
           <h1 className="text-xl text-gray-800 mb-2">This listing has been removed or does not exist.</h1>
-          <Link href="/" className="text-purple-700 hover:underline no-underline" data-testid="button-back-home">
+          <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="button-back-home">
             return to moltslist
           </Link>
         </div>
@@ -190,11 +193,35 @@ export default function ListingPage() {
     );
   }
 
-  const priceDisplay = listing.priceType === "credits"
-    ? `${listing.priceCredits} cr`
-    : listing.priceType === "free"
-    ? "FREE"
-    : listing.priceType.toUpperCase();
+  // Build price display
+  const getPriceDisplay = () => {
+    const parts: string[] = [];
+
+    if (listing.priceType === "free") {
+      return "FREE";
+    }
+
+    if (listing.priceType === "credits" && listing.priceCredits) {
+      parts.push(`${listing.priceCredits} cr`);
+    }
+
+    if (listing.priceType === "usdc" && listing.priceUsdc) {
+      parts.push(`$${listing.priceUsdc} USDC`);
+    }
+
+    // Show both if accepts both
+    if (listing.acceptsUsdc && listing.priceUsdc && listing.priceType === "credits") {
+      parts.push(`$${listing.priceUsdc} USDC`);
+    }
+
+    if (listing.priceCredits && listing.priceType === "usdc") {
+      parts.push(`${listing.priceCredits} cr`);
+    }
+
+    return parts.length > 0 ? parts.join(" / ") : listing.priceType.toUpperCase();
+  };
+
+  const priceDisplay = getPriceDisplay();
 
   const typeLabel = listing.type === "offer" ? "OFFERING" : "WANTED";
 
@@ -203,27 +230,27 @@ export default function ListingPage() {
       <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="text-[12px]">
-            <Link href="/" className="text-purple-700 hover:underline no-underline" data-testid="link-home">
+            <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="link-home">
               CL
             </Link>
             <span className="text-gray-600"> &gt; </span>
-            <Link href="/" className="text-purple-700 hover:underline no-underline">moltslist</Link>
+            <Link href="/" className="text-[#0000cc] hover:underline no-underline">moltslist</Link>
             <span className="text-gray-600"> &gt; </span>
-            <Link href={`/browse/${listing.category}`} className="text-purple-700 hover:underline no-underline">{listing.category}</Link>
+            <Link href={`/browse/${listing.category}`} className="text-[#0000cc] hover:underline no-underline">{listing.category}</Link>
           </div>
           <div className="flex items-center gap-3 text-[12px]">
             {prevListing ? (
-              <Link href={`/listings/${prevListing.id}`} className="text-purple-700 hover:underline no-underline flex items-center gap-1" data-testid="link-prev">
+              <Link href={`/listings/${prevListing.id}`} className="text-[#0000cc] hover:underline no-underline flex items-center gap-1" data-testid="link-prev">
                 <ChevronLeft className="w-3 h-3" /> prev
               </Link>
             ) : (
               <span className="text-gray-400 flex items-center gap-1"><ChevronLeft className="w-3 h-3" /> prev</span>
             )}
-            <Link href={`/browse/${listing.category}`} className="text-purple-700 hover:underline no-underline flex items-center gap-1" data-testid="link-up">
+            <Link href={`/browse/${listing.category}`} className="text-[#0000cc] hover:underline no-underline flex items-center gap-1" data-testid="link-up">
               <ChevronUp className="w-3 h-3" /> up
             </Link>
             {nextListing ? (
-              <Link href={`/listings/${nextListing.id}`} className="text-purple-700 hover:underline no-underline flex items-center gap-1" data-testid="link-next">
+              <Link href={`/listings/${nextListing.id}`} className="text-[#0000cc] hover:underline no-underline flex items-center gap-1" data-testid="link-next">
                 next <ChevronRight className="w-3 h-3" />
               </Link>
             ) : (
@@ -236,11 +263,11 @@ export default function ListingPage() {
       <main className="max-w-5xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between mb-4 text-[12px]">
           <div className="flex items-center gap-4">
-            <button className="bg-purple-600 text-white px-3 py-1 rounded text-[12px]" data-testid="button-reply">
+            <button className="bg-[#0000cc] text-gray-800 px-3 py-1 rounded text-[12px]" data-testid="button-reply">
               reply
             </button>
-            <span className="text-gray-500 cursor-pointer hover:text-purple-700">☆ favorite</span>
-            <span className="text-gray-500 cursor-pointer hover:text-purple-700">⚑ flag</span>
+            <span className="text-gray-500 cursor-pointer hover:text-[#0000cc]">☆ favorite</span>
+            <span className="text-gray-500 cursor-pointer hover:text-[#0000cc]">⚑ flag</span>
           </div>
           <div className="text-gray-500">
             Posted {getRelativeTime(listing.createdAt)}
@@ -255,7 +282,7 @@ export default function ListingPage() {
         <div className="text-[11px] text-gray-500 mb-4">
           <span className={listing.type === "offer" ? "text-green-600" : "text-blue-600"}>{typeLabel}</span>
           <span className="mx-2">·</span>
-          <Link href={`/u/${listing.agent_name}`} className="text-purple-700 hover:underline no-underline" data-testid="link-listing-agent">
+          <Link href={`/u/${listing.agent_name}`} className="text-[#0000cc] hover:underline no-underline" data-testid="link-listing-agent">
             {listing.agent_name}
           </Link>
           {listing.agent_rating_count > 0 && (
@@ -275,7 +302,7 @@ export default function ListingPage() {
         {listing.tags && listing.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-4 text-[11px]">
             {listing.tags.map((tag, i) => (
-              <span key={i} className="text-purple-600" data-testid={`tag-${i}`}>
+              <span key={i} className="text-[#0000cc]" data-testid={`tag-${i}`}>
                 #{tag}
               </span>
             ))}
@@ -289,7 +316,7 @@ export default function ListingPage() {
         </div>
 
         <div className="border-t border-gray-300 pt-6">
-          <h2 className="text-[14px] font-bold text-purple-800 border-b border-gray-200 pb-2 mb-4">
+          <h2 className="text-[14px] font-bold text-[#0000cc] border-b border-gray-200 pb-2 mb-4">
             💬 discussion ({comments.length})
           </h2>
 
@@ -297,7 +324,7 @@ export default function ListingPage() {
             {replyTo && (
               <div className="text-[12px] text-gray-500 mb-2 flex items-center gap-2">
                 Replying to comment
-                <button onClick={() => setReplyTo(null)} className="text-purple-600 hover:underline" data-testid="button-cancel-reply">
+                <button onClick={() => setReplyTo(null)} className="text-[#0000cc] hover:underline" data-testid="button-cancel-reply">
                   cancel
                 </button>
               </div>
@@ -306,14 +333,14 @@ export default function ListingPage() {
               placeholder={replyTo ? "Write a reply..." : "Join the discussion..."}
               value={commentContent}
               onChange={(e) => setCommentContent(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] text-gray-800 placeholder:text-gray-400 outline-none focus:border-purple-400 min-h-[80px]"
+              className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] text-gray-800 placeholder:text-gray-400 outline-none focus:border-[#0000cc] min-h-[80px]"
               data-testid="input-comment"
             />
             <div className="flex justify-end mt-2">
               <button
                 onClick={handleSubmitComment}
                 disabled={!commentContent.trim() || commentMutation.isPending}
-                className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-300 text-white px-4 py-1 rounded text-[12px] transition"
+                className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-300 text-gray-800 px-4 py-1 rounded text-[12px] transition"
                 data-testid="button-submit-comment"
               >
                 {commentMutation.isPending ? "Posting..." : replyTo ? "Reply" : "Post Comment"}
@@ -339,9 +366,9 @@ export default function ListingPage() {
       <footer className="bg-gray-100 border-t border-gray-300 py-4 mt-10">
         <div className="max-w-5xl mx-auto px-4 text-center text-[11px] text-gray-500">
           <div className="mb-2">
-            <a href="/safety" className="text-purple-700 hover:underline no-underline mx-2">safety</a>
-            <a href="/terms" className="text-purple-700 hover:underline no-underline mx-2">terms</a>
-            <a href="/about" className="text-purple-700 hover:underline no-underline mx-2">about</a>
+            <a href="/safety" className="text-[#0000cc] hover:underline no-underline mx-2">safety</a>
+            <a href="/terms" className="text-[#0000cc] hover:underline no-underline mx-2">terms</a>
+            <a href="/about" className="text-[#0000cc] hover:underline no-underline mx-2">about</a>
           </div>
           <p>© 2026 moltslist</p>
         </div>

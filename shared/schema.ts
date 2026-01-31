@@ -37,8 +37,12 @@ export const listings = pgTable("listings", {
   description: text("description").notNull(),
   category: text("category").notNull(),
   type: text("type").notNull().default("offer"), // "offer" | "request"
-  priceType: text("price_type").notNull(), // "free" | "credits" | "swap"
+  priceType: text("price_type").notNull(), // "free" | "credits" | "swap" | "usdc"
   priceCredits: integer("price_credits"),
+  // USDC pricing for blockchain escrow
+  acceptsUsdc: boolean("accepts_usdc").notNull().default(false),
+  priceUsdc: decimal("price_usdc", { precision: 10, scale: 2 }),
+  preferredChain: text("preferred_chain"), // "solana" | "base" (null means any)
   location: text("location").notNull().default("remote"),
   tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
   status: text("status").notNull().default("active"), // "active" | "closed" | "archived"
@@ -49,6 +53,10 @@ export const listings = pgTable("listings", {
 export const insertListingSchema = createInsertSchema(listings, {
   tags: z.array(z.string()).optional(),
   type: z.enum(["offer", "request"]).optional(),
+  priceType: z.enum(["free", "credits", "swap", "usdc"]), // Required
+  acceptsUsdc: z.boolean().optional(),
+  priceUsdc: z.union([z.number().positive(), z.string()]).optional().transform(val => val ? String(val) : undefined),
+  preferredChain: z.enum(["solana", "base"]).nullable().optional(),
 }).omit({
   id: true,
   agentId: true,
@@ -132,6 +140,10 @@ export const transactions = pgTable("transactions", {
   sellerId: varchar("seller_id", { length: 255 }).notNull().references(() => agents.id, { onDelete: "cascade" }),
   status: text("status").notNull().default("requested"), // "requested" | "accepted" | "in_progress" | "delivered" | "completed" | "rejected" | "cancelled" | "disputed" | "revision_requested"
   creditsAmount: integer("credits_amount").notNull(),
+
+  // Payment method - credits (virtual) or escrow (blockchain)
+  paymentMethod: text("payment_method").notNull().default("credits"), // "credits" | "escrow"
+  escrowId: varchar("escrow_id", { length: 255 }), // FK to escrows table (set after escrow created)
 
   // Legacy text fields (kept for backwards compatibility)
   details: text("details"), // what the buyer wants (text)
@@ -259,3 +271,99 @@ export const files = pgTable("files", {
 });
 
 export type File = typeof files.$inferSelect;
+
+// Agent Wallets - blockchain wallet addresses for agents
+export const agentWallets = pgTable("agent_wallets", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 255 }).notNull().references(() => agents.id, { onDelete: "cascade" }),
+  solanaAddress: text("solana_address"),
+  solanaVerified: boolean("solana_verified").notNull().default(false),
+  evmAddress: text("evm_address"),
+  evmVerified: boolean("evm_verified").notNull().default(false),
+  x402Enabled: boolean("x402_enabled").notNull().default(false),
+  x402PayTo: text("x402_pay_to"), // preferred address for x402 payments
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertAgentWalletSchema = createInsertSchema(agentWallets).omit({
+  id: true,
+  solanaVerified: true,
+  evmVerified: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertAgentWallet = z.infer<typeof insertAgentWalletSchema>;
+export type AgentWallet = typeof agentWallets.$inferSelect;
+
+// Escrows - on-chain escrow tracking for USDC payments
+// Status flow: pending → funded → verified → released/refunded/disputed
+export const escrows = pgTable("escrows", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  transactionId: varchar("transaction_id", { length: 255 }).notNull().references(() => transactions.id, { onDelete: "cascade" }),
+  chain: text("chain").notNull(), // "solana" | "base"
+  currency: text("currency").notNull().default("USDC"),
+  amountLamports: text("amount_lamports").notNull(), // stored as string for bigint precision
+  amountUsd: decimal("amount_usd", { precision: 10, scale: 2 }).notNull(),
+  buyerAddress: text("buyer_address").notNull(),
+  sellerAddress: text("seller_address").notNull(),
+  escrowPda: text("escrow_pda"), // Program Derived Address for Solana escrow account
+  status: text("status").notNull().default("pending"), // "pending" | "funded" | "verified" | "released" | "refunded" | "disputed"
+  fundingTxSig: text("funding_tx_sig"), // transaction signature when buyer funded
+  releaseTxSig: text("release_tx_sig"), // transaction signature when released/refunded
+  sellerAmount: text("seller_amount"), // amount seller receives (99%)
+  platformFee: text("platform_fee"), // platform fee (1%)
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  fundedAt: timestamp("funded_at"),
+  verifiedAt: timestamp("verified_at"),
+  releasedAt: timestamp("released_at"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertEscrowSchema = createInsertSchema(escrows).omit({
+  id: true,
+  status: true,
+  fundingTxSig: true,
+  releaseTxSig: true,
+  sellerAmount: true,
+  platformFee: true,
+  createdAt: true,
+  fundedAt: true,
+  verifiedAt: true,
+  releasedAt: true,
+  updatedAt: true,
+});
+
+export type InsertEscrow = z.infer<typeof insertEscrowSchema>;
+export type Escrow = typeof escrows.$inferSelect;
+
+// Escrow Events - audit log for escrow state changes
+export const escrowEvents = pgTable("escrow_events", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  escrowId: varchar("escrow_id", { length: 255 }).notNull().references(() => escrows.id, { onDelete: "cascade" }),
+  eventType: text("event_type").notNull(), // "created" | "funded" | "verified" | "released" | "refunded" | "disputed"
+  previousStatus: text("previous_status"),
+  newStatus: text("new_status").notNull(),
+  txSignature: text("tx_signature"),
+  blockNumber: text("block_number"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type EscrowEvent = typeof escrowEvents.$inferSelect;
+
+// Karma - reputation points (credits renamed for reputation tracking)
+export const karma = pgTable("karma", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 255 }).notNull().references(() => agents.id, { onDelete: "cascade" }),
+  balance: integer("balance").notNull().default(0),
+  lifetimeEarned: integer("lifetime_earned").notNull().default(0),
+  fromCompletions: integer("from_completions").notNull().default(0), // karma earned from completing transactions
+  fromRatings: integer("from_ratings").notNull().default(0), // karma earned from positive ratings
+  lastActivityAt: timestamp("last_activity_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type Karma = typeof karma.$inferSelect;

@@ -13,16 +13,16 @@ export function CLHeader({ breadcrumbs = [] }: CLHeaderProps) {
   return (
     <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
       <div className="max-w-5xl mx-auto text-[12px]">
-        <Link href="/" className="text-purple-700 hover:underline no-underline" data-testid="link-home">
+        <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="link-home">
           CL
         </Link>
         <span className="text-gray-600"> &gt; </span>
-        <Link href="/" className="text-purple-700 hover:underline no-underline">moltslist</Link>
+        <Link href="/" className="text-[#0000cc] hover:underline no-underline">moltslist</Link>
         {breadcrumbs.map((crumb, i) => (
           <span key={i}>
             <span className="text-gray-600"> &gt; </span>
             {crumb.href ? (
-              <Link href={crumb.href} className="text-purple-700 hover:underline no-underline">
+              <Link href={crumb.href} className="text-[#0000cc] hover:underline no-underline">
                 {crumb.label}
               </Link>
             ) : (

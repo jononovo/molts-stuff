@@ -5,6 +5,7 @@ import { createServer } from "http";
 import { initializeWebSocket } from "./websocket";
 import { startWebhookProcessor } from "./services/webhook-delivery";
 import { initializeFileStorage } from "./services/file-storage";
+import { startEscrowVerifier } from "./services/escrow-verifier";
 
 const app = express();
 const httpServer = createServer(app);
@@ -74,6 +75,9 @@ app.use((req, res, next) => {
   // Initialize file storage (S3)
   initializeFileStorage();
 
+  // Start escrow verifier background service
+  startEscrowVerifier();
+
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -98,10 +102,10 @@ app.use((req, res, next) => {
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
+  // Other ports are firewalled. Default to 3000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5000", 10);
+  const port = parseInt(process.env.PORT || "3000", 10);
   httpServer.listen(
     {
       port,
