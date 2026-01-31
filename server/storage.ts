@@ -16,6 +16,10 @@ import type {
   InsertSignup,
   Transaction,
   ActivityFeedItem,
+  Webhook,
+  InsertWebhook,
+  WebhookDelivery,
+  File,
 } from "@shared/schema";
 import { randomBytes, createHash } from "crypto";
 
@@ -72,14 +76,42 @@ export interface IStorage {
   getCreditTransactions(agentId: string, limit: number): Promise<CreditTransaction[]>;
 
   // Transactions
-  createTransaction(buyerId: string, listingId: string, creditsAmount: number, details?: string): Promise<Transaction>;
+  createTransaction(buyerId: string, listingId: string, creditsAmount: number, details?: string, taskPayload?: any): Promise<Transaction>;
   getTransaction(id: string): Promise<Transaction | undefined>;
   getIncomingTransactions(sellerId: string): Promise<Transaction[]>;
   getOutgoingTransactions(buyerId: string): Promise<Transaction[]>;
   acceptTransaction(id: string, sellerId: string): Promise<Transaction | undefined>;
   rejectTransaction(id: string, sellerId: string): Promise<Transaction | undefined>;
+  startTransaction(id: string, sellerId: string): Promise<Transaction | undefined>;
+  updateTransactionProgress(id: string, sellerId: string, progress: number, statusMessage?: string): Promise<Transaction | undefined>;
+  deliverTransaction(id: string, sellerId: string, taskResult: any, result?: string): Promise<Transaction | undefined>;
+  requestRevision(id: string, buyerId: string, reason?: string): Promise<Transaction | undefined>;
   completeTransaction(id: string, buyerId: string, rating?: number, review?: string): Promise<Transaction | undefined>;
   cancelTransaction(id: string, buyerId: string): Promise<Transaction | undefined>;
+
+  // Webhooks
+  createWebhook(agentId: string, webhook: InsertWebhook): Promise<Webhook>;
+  getWebhook(id: string): Promise<Webhook | undefined>;
+  getWebhooksByAgent(agentId: string): Promise<Webhook[]>;
+  getWebhooksForEvent(agentId: string, event: string): Promise<Webhook[]>;
+  updateWebhook(id: string, agentId: string, data: Partial<InsertWebhook>): Promise<Webhook | undefined>;
+  deleteWebhook(id: string, agentId: string): Promise<boolean>;
+  recordWebhookSuccess(id: string): Promise<void>;
+  recordWebhookFailure(id: string): Promise<void>;
+
+  // Webhook Deliveries
+  createWebhookDelivery(delivery: { webhookId: string; transactionId?: string; event: string; payload: any }): Promise<WebhookDelivery>;
+  getPendingDeliveries(limit: number): Promise<WebhookDelivery[]>;
+  updateDeliveryStatus(id: string, status: string, statusCode?: number, response?: string): Promise<void>;
+  scheduleRetry(id: string, nextRetryAt: Date): Promise<void>;
+
+  // Files
+  createFile(file: { agentId: string; transactionId?: string; filename: string; mimeType: string; size: number; storageKey: string; accessLevel?: string; metadata?: any }): Promise<File>;
+  getFile(id: string): Promise<File | undefined>;
+  getFilesByAgent(agentId: string, limit?: number): Promise<File[]>;
+  getFilesByTransaction(transactionId: string): Promise<File[]>;
+  attachFileToTransaction(fileId: string, agentId: string, transactionId: string, accessLevel?: string): Promise<File | undefined>;
+  deleteFile(id: string, agentId: string): Promise<boolean>;
 
   // Activity Feed
   logActivity(event: {
@@ -455,7 +487,7 @@ class DbStorage implements IStorage {
   }
 
   // Transactions
-  async createTransaction(buyerId: string, listingId: string, creditsAmount: number, details?: string) {
+  async createTransaction(buyerId: string, listingId: string, creditsAmount: number, details?: string, taskPayload?: any) {
     const listing = await this.getListing(listingId);
     if (!listing) throw new Error("Listing not found");
 
@@ -467,6 +499,7 @@ class DbStorage implements IStorage {
         sellerId: listing.agentId,
         creditsAmount,
         details,
+        taskPayload,
       })
       .returning();
 
@@ -520,7 +553,8 @@ class DbStorage implements IStorage {
 
   async completeTransaction(id: string, buyerId: string, rating?: number, review?: string) {
     const txn = await this.getTransaction(id);
-    if (!txn || txn.buyerId !== buyerId || txn.status !== "accepted") return undefined;
+    // Allow completion from "accepted" (legacy) or "delivered" (new flow)
+    if (!txn || txn.buyerId !== buyerId || (txn.status !== "accepted" && txn.status !== "delivered")) return undefined;
 
     // Transfer credits from buyer to seller
     const transferred = await this.transferCredits(buyerId, txn.sellerId, txn.creditsAmount, txn.listingId);
@@ -565,6 +599,254 @@ class DbStorage implements IStorage {
       .where(and(eq(schema.transactions.id, id), eq(schema.transactions.buyerId, buyerId), eq(schema.transactions.status, "requested")))
       .returning();
     return transaction;
+  }
+
+  async startTransaction(id: string, sellerId: string) {
+    const [transaction] = await db
+      .update(schema.transactions)
+      .set({ status: "in_progress", startedAt: new Date(), progress: 0 })
+      .where(and(
+        eq(schema.transactions.id, id),
+        eq(schema.transactions.sellerId, sellerId),
+        eq(schema.transactions.status, "accepted")
+      ))
+      .returning();
+    return transaction;
+  }
+
+  async updateTransactionProgress(id: string, sellerId: string, progress: number, statusMessage?: string) {
+    const [transaction] = await db
+      .update(schema.transactions)
+      .set({ progress: Math.min(100, Math.max(0, progress)), statusMessage })
+      .where(and(
+        eq(schema.transactions.id, id),
+        eq(schema.transactions.sellerId, sellerId),
+        eq(schema.transactions.status, "in_progress")
+      ))
+      .returning();
+    return transaction;
+  }
+
+  async deliverTransaction(id: string, sellerId: string, taskResult: any, result?: string) {
+    const [transaction] = await db
+      .update(schema.transactions)
+      .set({
+        status: "delivered",
+        taskResult,
+        result,
+        progress: 100,
+        deliveredAt: new Date(),
+      })
+      .where(and(
+        eq(schema.transactions.id, id),
+        eq(schema.transactions.sellerId, sellerId),
+        eq(schema.transactions.status, "in_progress")
+      ))
+      .returning();
+    return transaction;
+  }
+
+  async requestRevision(id: string, buyerId: string, reason?: string) {
+    const [transaction] = await db
+      .update(schema.transactions)
+      .set({
+        status: "revision_requested",
+        statusMessage: reason || "Revision requested by buyer",
+      })
+      .where(and(
+        eq(schema.transactions.id, id),
+        eq(schema.transactions.buyerId, buyerId),
+        eq(schema.transactions.status, "delivered")
+      ))
+      .returning();
+    return transaction;
+  }
+
+  // Webhooks
+  async createWebhook(agentId: string, webhook: InsertWebhook) {
+    const secret = `whsec_${randomBytes(32).toString("hex")}`;
+    const [newWebhook] = await db
+      .insert(schema.webhooks)
+      .values({
+        ...webhook,
+        agentId,
+        secret,
+      })
+      .returning();
+    return newWebhook;
+  }
+
+  async getWebhook(id: string) {
+    const [webhook] = await db
+      .select()
+      .from(schema.webhooks)
+      .where(eq(schema.webhooks.id, id))
+      .limit(1);
+    return webhook;
+  }
+
+  async getWebhooksByAgent(agentId: string) {
+    const webhooks = await db
+      .select()
+      .from(schema.webhooks)
+      .where(eq(schema.webhooks.agentId, agentId))
+      .orderBy(desc(schema.webhooks.createdAt));
+    return webhooks;
+  }
+
+  async getWebhooksForEvent(agentId: string, event: string) {
+    const webhooks = await db
+      .select()
+      .from(schema.webhooks)
+      .where(and(
+        eq(schema.webhooks.agentId, agentId),
+        eq(schema.webhooks.isActive, true),
+        sql`${event} = ANY(${schema.webhooks.events})`
+      ));
+    return webhooks;
+  }
+
+  async updateWebhook(id: string, agentId: string, data: Partial<InsertWebhook>) {
+    const [webhook] = await db
+      .update(schema.webhooks)
+      .set(data)
+      .where(and(eq(schema.webhooks.id, id), eq(schema.webhooks.agentId, agentId)))
+      .returning();
+    return webhook;
+  }
+
+  async deleteWebhook(id: string, agentId: string) {
+    const result = await db
+      .delete(schema.webhooks)
+      .where(and(eq(schema.webhooks.id, id), eq(schema.webhooks.agentId, agentId)))
+      .returning();
+    return result.length > 0;
+  }
+
+  async recordWebhookSuccess(id: string) {
+    await db
+      .update(schema.webhooks)
+      .set({ failureCount: 0, lastSuccessAt: new Date() })
+      .where(eq(schema.webhooks.id, id));
+  }
+
+  async recordWebhookFailure(id: string) {
+    await db
+      .update(schema.webhooks)
+      .set({
+        failureCount: sql`${schema.webhooks.failureCount} + 1`,
+        lastFailureAt: new Date(),
+        // Auto-disable after 5 consecutive failures
+        isActive: sql`CASE WHEN ${schema.webhooks.failureCount} >= 4 THEN false ELSE ${schema.webhooks.isActive} END`,
+      })
+      .where(eq(schema.webhooks.id, id));
+  }
+
+  // Webhook Deliveries
+  async createWebhookDelivery(delivery: { webhookId: string; transactionId?: string; event: string; payload: any }) {
+    const [newDelivery] = await db
+      .insert(schema.webhookDeliveries)
+      .values(delivery)
+      .returning();
+    return newDelivery;
+  }
+
+  async getPendingDeliveries(limit: number) {
+    const now = new Date();
+    const deliveries = await db
+      .select()
+      .from(schema.webhookDeliveries)
+      .where(and(
+        eq(schema.webhookDeliveries.status, "pending"),
+        or(
+          sql`${schema.webhookDeliveries.nextRetryAt} IS NULL`,
+          sql`${schema.webhookDeliveries.nextRetryAt} <= ${now}`
+        )!
+      ))
+      .orderBy(schema.webhookDeliveries.createdAt)
+      .limit(limit);
+    return deliveries;
+  }
+
+  async updateDeliveryStatus(id: string, status: string, statusCode?: number, response?: string) {
+    await db
+      .update(schema.webhookDeliveries)
+      .set({
+        status,
+        statusCode,
+        response,
+        attempts: sql`${schema.webhookDeliveries.attempts} + 1`,
+        deliveredAt: status === "delivered" ? new Date() : undefined,
+      })
+      .where(eq(schema.webhookDeliveries.id, id));
+  }
+
+  async scheduleRetry(id: string, nextRetryAt: Date) {
+    await db
+      .update(schema.webhookDeliveries)
+      .set({ nextRetryAt })
+      .where(eq(schema.webhookDeliveries.id, id));
+  }
+
+  // Files
+  async createFile(file: { agentId: string; transactionId?: string; filename: string; mimeType: string; size: number; storageKey: string; accessLevel?: string; metadata?: any }) {
+    const [newFile] = await db
+      .insert(schema.files)
+      .values({
+        ...file,
+        accessLevel: file.accessLevel || (file.transactionId ? "transaction" : "private"),
+      })
+      .returning();
+    return newFile;
+  }
+
+  async getFile(id: string) {
+    const [file] = await db
+      .select()
+      .from(schema.files)
+      .where(eq(schema.files.id, id))
+      .limit(1);
+    return file;
+  }
+
+  async getFilesByAgent(agentId: string, limit = 50) {
+    const files = await db
+      .select()
+      .from(schema.files)
+      .where(eq(schema.files.agentId, agentId))
+      .orderBy(desc(schema.files.createdAt))
+      .limit(limit);
+    return files;
+  }
+
+  async getFilesByTransaction(transactionId: string) {
+    const files = await db
+      .select()
+      .from(schema.files)
+      .where(eq(schema.files.transactionId, transactionId))
+      .orderBy(desc(schema.files.createdAt));
+    return files;
+  }
+
+  async attachFileToTransaction(fileId: string, agentId: string, transactionId: string, accessLevel = "transaction") {
+    const [file] = await db
+      .update(schema.files)
+      .set({ transactionId, accessLevel })
+      .where(and(
+        eq(schema.files.id, fileId),
+        eq(schema.files.agentId, agentId),
+        sql`${schema.files.transactionId} IS NULL` // Can only attach unattached files
+      ))
+      .returning();
+    return file;
+  }
+
+  async deleteFile(id: string, agentId: string) {
+    const result = await db
+      .delete(schema.files)
+      .where(and(eq(schema.files.id, id), eq(schema.files.agentId, agentId)))
+      .returning();
+    return result.length > 0;
   }
 
   // Activity Feed
