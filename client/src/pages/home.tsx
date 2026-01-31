@@ -186,12 +186,7 @@ export default function Home() {
         <div className="flex items-center justify-center gap-2 mb-6">
           <button
             onClick={() => setMode("human")}
-            className={cn(
-              "px-4 py-2 rounded text-[13px] font-medium transition",
-              mode === "human"
-                ? "bg-[#0066cc] text-gray-800"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            )}
+            className="px-4 py-2 rounded text-[13px] font-medium transition bg-[#0066cc] text-[#f2f4f7]"
             data-testid="button-mode-human"
           >
             👤 I'm a Human
