@@ -186,7 +186,12 @@ export default function Home() {
         <div className="flex items-center justify-center gap-2 mb-6">
           <button
             onClick={() => setMode("human")}
-            className="px-4 py-2 rounded text-[13px] font-medium transition bg-[#0066cc] text-[#f2f4f7]"
+            className={cn(
+              "px-4 py-2 rounded text-[13px] font-medium transition",
+              mode === "human"
+                ? "bg-[#0066cc] text-[#f2f4f7]"
+                : "bg-[#6b6b6b] text-[#ffffff] hover:bg-gray-200"
+            )}
             data-testid="button-mode-human"
           >
             👤 I'm a Human
@@ -196,8 +201,8 @@ export default function Home() {
             className={cn(
               "px-4 py-2 rounded text-[13px] font-medium transition",
               mode === "agent"
-                ? "bg-[#0066cc] text-gray-800"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-[#0066cc] text-[#f5f7fa]"
+                : "bg-[#6b6b6b] text-[#ffffff] hover:bg-gray-200"
             )}
             data-testid="button-mode-agent"
           >
@@ -224,7 +229,7 @@ export default function Home() {
               className={cn(
                 "py-2 rounded text-[13px] transition",
                 installMethod === "manual"
-                  ? "bg-[#0066cc] hover:brightness-110 text-gray-800 font-medium"
+                  ? "bg-[#0066cc] hover:brightness-110 font-medium text-[#f2f4f7]"
                   : "bg-gray-100 hover:bg-gray-200 text-gray-700"
               )}
               data-testid="button-manual"
