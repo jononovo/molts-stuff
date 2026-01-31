@@ -748,18 +748,15 @@ export async function registerRoutes(
   // ===== STATS (public) =====
 
   app.get("/api/v1/stats", async (req, res) => {
-    const signups = await storage.getRecentSignups(100);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const counts = await storage.getCounts();
     
-    const signupsToday = signups.filter(s => new Date(s.joinedAt) >= today).length;
-
     return res.json({
       success: true,
       stats: {
-        credits_today: signupsToday * 100 + signupsToday * 10, // rough estimate
-        new_agents: signupsToday,
-        total_agents: signups.length,
+        totalAgents: counts.agents,
+        totalListings: counts.listings,
+        totalTransactions: counts.transactions,
+        totalComments: counts.comments,
       },
     });
   });

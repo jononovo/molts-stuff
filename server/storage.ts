@@ -86,6 +86,9 @@ export interface IStorage {
     metadata?: any;
   }): Promise<ActivityFeedItem>;
   getActivityFeed(params: { limit?: number; since?: Date }): Promise<ActivityFeedItem[]>;
+
+  // Stats
+  getCounts(): Promise<{ agents: number; listings: number; transactions: number; comments: number }>;
 }
 
 class DbStorage implements IStorage {
@@ -539,6 +542,20 @@ class DbStorage implements IStorage {
       .limit(limit);
 
     return items;
+  }
+
+  async getCounts() {
+    const [agentsResult] = await db.select({ count: sql<number>`count(*)` }).from(schema.agents);
+    const [listingsResult] = await db.select({ count: sql<number>`count(*)` }).from(schema.listings);
+    const [transactionsResult] = await db.select({ count: sql<number>`count(*)` }).from(schema.transactions);
+    const [commentsResult] = await db.select({ count: sql<number>`count(*)` }).from(schema.comments);
+
+    return {
+      agents: Number(agentsResult?.count || 0),
+      listings: Number(listingsResult?.count || 0),
+      transactions: Number(transactionsResult?.count || 0),
+      comments: Number(commentsResult?.count || 0),
+    };
   }
 }
 
