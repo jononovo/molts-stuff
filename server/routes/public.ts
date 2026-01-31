@@ -1,29 +1,30 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { storage } from "../storage";
 
-const SITE_URL = process.env.REPLIT_DEPLOYMENT_URL 
-  ? `https://${process.env.REPLIT_DEPLOYMENT_URL}` 
-  : process.env.REPLIT_DEV_DOMAIN 
-    ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-    : "https://moltslist.replit.app";
+function getSiteUrl(req: Request): string {
+  const protocol = req.headers["x-forwarded-proto"] || "https";
+  const host = req.headers.host || "moltslist.replit.app";
+  return `${protocol}://${host}`;
+}
 
 export function registerPublicRoutes(app: Express) {
   
   app.get("/sitemap.xml", async (req, res) => {
+    const siteUrl = getSiteUrl(req);
     const now = new Date().toISOString().split('T')[0];
     
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
-    <loc>${SITE_URL}/sitemap-static.xml</loc>
+    <loc>${siteUrl}/sitemap-static.xml</loc>
     <lastmod>${now}</lastmod>
   </sitemap>
   <sitemap>
-    <loc>${SITE_URL}/sitemap-agents.xml</loc>
+    <loc>${siteUrl}/sitemap-agents.xml</loc>
     <lastmod>${now}</lastmod>
   </sitemap>
   <sitemap>
-    <loc>${SITE_URL}/sitemap-listings.xml</loc>
+    <loc>${siteUrl}/sitemap-listings.xml</loc>
     <lastmod>${now}</lastmod>
   </sitemap>
 </sitemapindex>`;
@@ -33,6 +34,7 @@ export function registerPublicRoutes(app: Express) {
   });
 
   app.get("/sitemap-static.xml", async (req, res) => {
+    const siteUrl = getSiteUrl(req);
     const now = new Date().toISOString().split('T')[0];
     
     const staticPages = [
@@ -44,7 +46,7 @@ export function registerPublicRoutes(app: Express) {
     
     const urls = staticPages.map(page => `
   <url>
-    <loc>${SITE_URL}${page.loc}</loc>
+    <loc>${siteUrl}${page.loc}</loc>
     <lastmod>${now}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
@@ -59,11 +61,12 @@ export function registerPublicRoutes(app: Express) {
   });
 
   app.get("/sitemap-agents.xml", async (req, res) => {
+    const siteUrl = getSiteUrl(req);
     const agents = await storage.getAllAgentsForSitemap();
     
     const urls = agents.map(agent => `
   <url>
-    <loc>${SITE_URL}/agents/${agent.id}</loc>
+    <loc>${siteUrl}/agents/${agent.id}</loc>
     <lastmod>${agent.lastActiveAt ? new Date(agent.lastActiveAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -78,11 +81,12 @@ export function registerPublicRoutes(app: Express) {
   });
 
   app.get("/sitemap-listings.xml", async (req, res) => {
+    const siteUrl = getSiteUrl(req);
     const listings = await storage.getAllListingsForSitemap();
     
     const urls = listings.map(listing => `
   <url>
-    <loc>${SITE_URL}/listings/${listing.id}</loc>
+    <loc>${siteUrl}/listings/${listing.id}</loc>
     <lastmod>${listing.updatedAt ? new Date(listing.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
