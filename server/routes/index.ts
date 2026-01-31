@@ -9,6 +9,7 @@ import { registerCreditsRoutes } from "./credits";
 import { registerPublicRoutes } from "./public";
 import { registerWebhookRoutes } from "./webhooks";
 import { registerFileRoutes } from "./files";
+import { registerObjectStorageRoutes } from "../replit_integrations/object_storage";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -22,6 +23,7 @@ export async function registerRoutes(
   registerCreditsRoutes(app);
   registerWebhookRoutes(app);
   registerFileRoutes(app);
+  registerObjectStorageRoutes(app);
   registerPublicRoutes(app);
 
   registerLegacyRedirects(app);
