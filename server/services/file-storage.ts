@@ -1,14 +1,5 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { ObjectStorageService } from "../replit_integrations/object_storage";
 import { randomBytes } from "crypto";
-
-export interface FileStorageConfig {
-  bucket: string;
-  region: string;
-  accessKeyId?: string;
-  secretAccessKey?: string;
-  endpoint?: string; // For S3-compatible services like MinIO
-}
 
 export interface UploadResult {
   storageKey: string;
@@ -18,92 +9,151 @@ export interface FileStorage {
   upload(buffer: Buffer, filename: string, mimeType: string, agentId: string): Promise<UploadResult>;
   getSignedDownloadUrl(storageKey: string, expiresIn?: number): Promise<string>;
   delete(storageKey: string): Promise<void>;
+  getObjectPath(storageKey: string): string;
 }
 
-class S3FileStorage implements FileStorage {
-  private client: S3Client;
-  private bucket: string;
+const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 
-  constructor(config: FileStorageConfig) {
-    this.bucket = config.bucket;
-    this.client = new S3Client({
-      region: config.region,
-      endpoint: config.endpoint,
-      credentials: config.accessKeyId && config.secretAccessKey
-        ? {
-            accessKeyId: config.accessKeyId,
-            secretAccessKey: config.secretAccessKey,
-          }
-        : undefined,
-      forcePathStyle: !!config.endpoint, // Required for MinIO/LocalStack
-    });
+class ReplitObjectStorage implements FileStorage {
+  private objectStorageService: ObjectStorageService;
+
+  constructor() {
+    this.objectStorageService = new ObjectStorageService();
   }
 
   async upload(buffer: Buffer, filename: string, mimeType: string, agentId: string): Promise<UploadResult> {
     const ext = filename.split(".").pop() || "";
     const uniqueId = randomBytes(16).toString("hex");
-    const storageKey = `files/${agentId}/${uniqueId}${ext ? `.${ext}` : ""}`;
+    const storageKey = `uploads/${agentId}/${uniqueId}${ext ? `.${ext}` : ""}`;
 
-    await this.client.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: storageKey,
-        Body: buffer,
-        ContentType: mimeType,
-        Metadata: {
-          originalFilename: filename,
-          agentId: agentId,
-        },
-      })
-    );
+    const privateDir = this.objectStorageService.getPrivateObjectDir();
+    const fullPath = `${privateDir}/${storageKey}`;
 
-    // Don't store URLs - generate on-demand with short expiration for security
-    return { storageKey };
+    const { bucketName, objectName } = this.parseObjectPath(fullPath);
+
+    const uploadUrl = await this.signObjectURL({
+      bucketName,
+      objectName,
+      method: "PUT",
+      ttlSec: 900,
+    });
+
+    const response = await fetch(uploadUrl, {
+      method: "PUT",
+      body: buffer,
+      headers: {
+        "Content-Type": mimeType,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to upload file: ${response.status}`);
+    }
+
+    return { storageKey: fullPath };
   }
 
   async getSignedDownloadUrl(storageKey: string, expiresIn = 3600): Promise<string> {
-    const command = new GetObjectCommand({
-      Bucket: this.bucket,
-      Key: storageKey,
-    });
+    const { bucketName, objectName } = this.parseObjectPath(storageKey);
 
-    return getSignedUrl(this.client, command, { expiresIn });
+    return this.signObjectURL({
+      bucketName,
+      objectName,
+      method: "GET",
+      ttlSec: expiresIn,
+    });
   }
 
   async delete(storageKey: string): Promise<void> {
-    await this.client.send(
-      new DeleteObjectCommand({
-        Bucket: this.bucket,
-        Key: storageKey,
-      })
+    const { bucketName, objectName } = this.parseObjectPath(storageKey);
+
+    const deleteUrl = await this.signObjectURL({
+      bucketName,
+      objectName,
+      method: "DELETE",
+      ttlSec: 60,
+    });
+
+    const response = await fetch(deleteUrl, { method: "DELETE" });
+    if (!response.ok && response.status !== 404) {
+      throw new Error(`Failed to delete file: ${response.status}`);
+    }
+  }
+
+  getObjectPath(storageKey: string): string {
+    return this.objectStorageService.normalizeObjectEntityPath(storageKey);
+  }
+
+  private parseObjectPath(path: string): { bucketName: string; objectName: string } {
+    if (!path.startsWith("/")) {
+      path = `/${path}`;
+    }
+    const pathParts = path.split("/");
+    if (pathParts.length < 3) {
+      throw new Error("Invalid path: must contain at least a bucket name");
+    }
+
+    const bucketName = pathParts[1];
+    const objectName = pathParts.slice(2).join("/");
+
+    return { bucketName, objectName };
+  }
+
+  private async signObjectURL({
+    bucketName,
+    objectName,
+    method,
+    ttlSec,
+  }: {
+    bucketName: string;
+    objectName: string;
+    method: "GET" | "PUT" | "DELETE" | "HEAD";
+    ttlSec: number;
+  }): Promise<string> {
+    const request = {
+      bucket_name: bucketName,
+      object_name: objectName,
+      method,
+      expires_at: new Date(Date.now() + ttlSec * 1000).toISOString(),
+    };
+
+    const response = await fetch(
+      `${REPLIT_SIDECAR_ENDPOINT}/object-storage/signed-object-url`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(request),
+      }
     );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to sign object URL, errorcode: ${response.status}, ` +
+          `make sure you're running on Replit`
+      );
+    }
+
+    const { signed_url: signedURL } = await response.json();
+    return signedURL;
   }
 }
 
-// Singleton instance
 let fileStorageInstance: FileStorage | null = null;
 
 export function initializeFileStorage(): FileStorage | null {
   if (fileStorageInstance) return fileStorageInstance;
 
-  const bucket = process.env.S3_BUCKET;
-  const region = process.env.S3_REGION || process.env.AWS_REGION || "us-east-1";
+  const privateDir = process.env.PRIVATE_OBJECT_DIR;
 
-  if (!bucket) {
-    console.warn("S3_BUCKET not configured - file uploads disabled");
+  if (!privateDir) {
+    console.warn("PRIVATE_OBJECT_DIR not configured - file uploads disabled. Set up Object Storage first.");
     return null;
   }
 
-  const config: FileStorageConfig = {
-    bucket,
-    region,
-    accessKeyId: process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY,
-    endpoint: process.env.S3_ENDPOINT, // Optional, for MinIO/LocalStack
-  };
-
-  fileStorageInstance = new S3FileStorage(config);
-  console.log(`File storage initialized (bucket: ${bucket}, region: ${region})`);
+  fileStorageInstance = new ReplitObjectStorage();
+  console.log("File storage initialized (Replit Object Storage)");
 
   return fileStorageInstance;
 }

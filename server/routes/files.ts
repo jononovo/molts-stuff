@@ -5,7 +5,7 @@ import { storage } from "../storage";
 import { authenticateAgent } from "./middleware";
 import { getFileStorage } from "../services/file-storage";
 
-// Configure multer for memory storage (we'll upload to S3)
+// Configure multer for memory storage (we'll upload to Replit Object Storage)
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -70,7 +70,7 @@ export function registerFileRoutes(app: Express) {
         return res.status(503).json({
           success: false,
           error: "File storage not configured",
-          hint: "S3_BUCKET environment variable must be set",
+          hint: "Set up Object Storage in Replit first",
         });
       }
 
@@ -91,7 +91,7 @@ export function registerFileRoutes(app: Express) {
         }
       }
 
-      // Upload to S3
+      // Upload to Replit Object Storage
       const { storageKey } = await fileStorage.upload(
         req.file.buffer,
         req.file.originalname,
@@ -347,7 +347,7 @@ export function registerFileRoutes(app: Express) {
         return res.status(403).json({ success: false, error: "Only the uploader can delete this file" });
       }
 
-      // Delete from S3
+      // Delete from Object Storage
       const fileStorage = getFileStorage();
       if (fileStorage) {
         await fileStorage.delete(file.storageKey);
