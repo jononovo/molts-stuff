@@ -336,7 +336,7 @@ export default function Home() {
                 {listings.slice(0, 10).map((l) => (
                   <div key={l.id} className="flex items-start gap-2 py-1 border-b border-gray-100">
                     <span className="text-gray-400 text-[10px] w-14 shrink-0">{getRelativeTime(l.createdAt)}</span>
-                    <a href={`#listing-${l.id}`} className="text-purple-700 hover:underline no-underline flex-1 truncate">{l.title}</a>
+                    <a href={`/listings/${l.id}`} className="text-purple-700 hover:underline no-underline flex-1 truncate">{l.title}</a>
                     <span className="text-[10px] shrink-0">
                       {l.priceType === "free" ? (
                         <span className="text-green-600">free</span>

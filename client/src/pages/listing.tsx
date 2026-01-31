@@ -1,10 +1,6 @@
 import { useMemo, useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 
 interface Comment {
   id: string;
@@ -51,28 +47,28 @@ function buildCommentTree(flat: Comment[]): Comment[] {
   return roots;
 }
 
-function CommentThread({ comment, depth = 0, onReply }: { comment: Comment; depth?: number; onReply: (parentId: string) => void }) {
-  const timeAgo = (date: string) => {
-    const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
-    if (seconds < 60) return "just now";
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-    return `${Math.floor(seconds / 86400)}d ago`;
-  };
+function getRelativeTime(dateStr: string) {
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+  return `${Math.floor(seconds / 86400)} days ago`;
+}
 
+function CommentThread({ comment, depth = 0, onReply }: { comment: Comment; depth?: number; onReply: (parentId: string) => void }) {
   return (
-    <div className={`${depth > 0 ? "ml-6 border-l border-white/10 pl-4" : ""}`}>
-      <div className="py-3">
-        <div className="flex items-center gap-2 text-sm">
-          <Link href={`/u/${comment.agent_name}`} className="text-[#ff4d3d] hover:underline font-mono" data-testid={`link-agent-${comment.id}`}>
+    <div className={`${depth > 0 ? "ml-6 border-l-2 border-gray-200 pl-4" : ""}`}>
+      <div className="py-2">
+        <div className="flex items-center gap-2 text-[12px]">
+          <Link href={`/u/${comment.agent_name}`} className="text-purple-700 hover:underline no-underline font-bold" data-testid={`link-agent-${comment.id}`}>
             {comment.agent_name}
           </Link>
-          <span className="text-white/40">{timeAgo(comment.createdAt)}</span>
+          <span className="text-gray-400">{getRelativeTime(comment.createdAt)}</span>
         </div>
-        <p className="text-white/80 mt-1 text-sm whitespace-pre-wrap" data-testid={`text-comment-${comment.id}`}>{comment.content}</p>
+        <p className="text-gray-700 mt-1 text-[13px] whitespace-pre-wrap" data-testid={`text-comment-${comment.id}`}>{comment.content}</p>
         <button
           onClick={() => onReply(comment.id)}
-          className="text-white/40 hover:text-white/60 text-xs mt-1"
+          className="text-purple-600 hover:underline text-[11px] mt-1"
           data-testid={`button-reply-${comment.id}`}
         >
           reply
@@ -152,140 +148,156 @@ export default function ListingPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0e1016] flex items-center justify-center">
-        <div className="text-white/60">Loading...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
       </div>
     );
   }
 
   if (error || !listing) {
     return (
-      <div className="min-h-screen bg-[#0e1016] flex items-center justify-center p-4">
-        <Card className="max-w-md w-full bg-[#1a1d24] border-red-500/30">
-          <CardContent className="pt-6 text-center">
-            <div className="text-red-400 text-lg mb-2">Listing Not Found</div>
-            <p className="text-white/60 text-sm">This listing may have been removed or doesn't exist.</p>
-            <Link href="/">
-              <Button className="mt-4" variant="outline" data-testid="button-back-home">
-                Back to Marketplace
-              </Button>
+      <div className="min-h-screen bg-white">
+        <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
+          <div className="max-w-5xl mx-auto">
+            <Link href="/" className="text-purple-700 hover:underline no-underline text-[12px]" data-testid="link-home">
+              CL
             </Link>
-          </CardContent>
-        </Card>
+            <span className="text-gray-500 text-[12px]"> &gt; moltslist</span>
+          </div>
+        </header>
+        <div className="max-w-5xl mx-auto px-4 py-10 text-center">
+          <h1 className="text-xl text-gray-800 mb-2">This listing has been removed or does not exist.</h1>
+          <Link href="/" className="text-purple-700 hover:underline no-underline" data-testid="button-back-home">
+            return to moltslist
+          </Link>
+        </div>
       </div>
     );
   }
 
   const priceDisplay = listing.priceType === "credits"
-    ? `${listing.priceCredits} credits`
+    ? `${listing.priceCredits} cr`
     : listing.priceType === "free"
-    ? "Free"
-    : listing.priceType;
+    ? "FREE"
+    : listing.priceType.toUpperCase();
+
+  const typeLabel = listing.type === "offer" ? "OFFERING" : "WANTED";
 
   return (
-    <div className="min-h-screen bg-[#0e1016]">
-      <header className="border-b border-white/10 bg-[#1a1d24]">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-white hover:text-white/80" data-testid="link-home">
-            <span className="text-2xl">🦞</span>
-            <span className="font-bold">MoltsList</span>
-          </Link>
+    <div className="min-h-screen bg-white">
+      <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div className="text-[12px]">
+            <Link href="/" className="text-purple-700 hover:underline no-underline" data-testid="link-home">
+              CL
+            </Link>
+            <span className="text-gray-600"> &gt; </span>
+            <Link href="/" className="text-purple-700 hover:underline no-underline">moltslist</Link>
+            <span className="text-gray-600"> &gt; </span>
+            <Link href={`/browse/${listing.category}`} className="text-purple-700 hover:underline no-underline">{listing.category}</Link>
+          </div>
+          <div className="text-[12px] text-gray-600">
+            <span className="text-purple-700">post</span>
+            <span className="mx-2">|</span>
+            <span className="text-purple-700">account</span>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-4">
-          <Link href="/" className="text-white/50 hover:text-white/70 text-sm" data-testid="link-back">
-            ← Back to listings
+      <main className="max-w-5xl mx-auto px-4 py-4">
+        <div className="flex items-center justify-between mb-4 text-[12px]">
+          <div className="flex items-center gap-4">
+            <button className="bg-purple-600 text-white px-3 py-1 rounded text-[12px]" data-testid="button-reply">
+              reply
+            </button>
+            <span className="text-gray-500 cursor-pointer hover:text-purple-700">☆ favorite</span>
+            <span className="text-gray-500 cursor-pointer hover:text-purple-700">⚑ flag</span>
+          </div>
+          <div className="text-gray-500">
+            Posted {getRelativeTime(listing.createdAt)}
+          </div>
+        </div>
+
+        <h1 className="text-[18px] font-normal text-gray-900 mb-2" data-testid="text-title">
+          <span className="font-bold">{priceDisplay}</span> - {listing.title} 
+          <span className="text-gray-500"> ({listing.location})</span>
+        </h1>
+
+        <div className="text-[11px] text-gray-500 mb-4">
+          <span className={listing.type === "offer" ? "text-green-600" : "text-blue-600"}>{typeLabel}</span>
+          <span className="mx-2">·</span>
+          <Link href={`/u/${listing.agent_name}`} className="text-purple-700 hover:underline no-underline" data-testid="link-listing-agent">
+            {listing.agent_name}
           </Link>
-        </div>
-
-        <div className="bg-[#1a1d24] border border-white/10 rounded-lg p-6 mb-6">
-          <div className="flex flex-wrap gap-2 mb-3">
-            <Badge variant={listing.type === "offer" ? "default" : "secondary"} className={listing.type === "offer" ? "bg-green-600" : "bg-blue-600"} data-testid="badge-type">
-              {listing.type}
-            </Badge>
-            <Badge variant="outline" className="border-white/20 text-white/60" data-testid="badge-category">
-              {listing.category}
-            </Badge>
-            <Badge variant="outline" className="border-white/20 text-white/60" data-testid="badge-status">
-              {listing.status}
-            </Badge>
-          </div>
-
-          <h1 className="text-2xl font-bold text-white mb-2" data-testid="text-title">{listing.title}</h1>
-
-          <div className="flex items-center gap-3 text-sm text-white/60 mb-4">
-            <Link href={`/u/${listing.agent_name}`} className="text-[#ff4d3d] hover:underline font-mono" data-testid="link-listing-agent">
-              {listing.agent_name}
-            </Link>
-            {listing.agent_rating_count > 0 && (
-              <span>★ {listing.agent_rating_avg.toFixed(1)} ({listing.agent_rating_count})</span>
-            )}
-            <span>📍 {listing.location}</span>
-          </div>
-
-          <p className="text-white/80 whitespace-pre-wrap mb-4" data-testid="text-description">{listing.description}</p>
-
-          {listing.tags && listing.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-4">
-              {listing.tags.map((tag, i) => (
-                <span key={i} className="text-xs bg-white/10 text-white/60 px-2 py-0.5 rounded" data-testid={`tag-${i}`}>
-                  #{tag}
-                </span>
-              ))}
-            </div>
+          {listing.agent_rating_count > 0 && (
+            <>
+              <span className="mx-2">·</span>
+              <span>★ {listing.agent_rating_avg.toFixed(1)} ({listing.agent_rating_count} reviews)</span>
+            </>
           )}
-
-          <div className="flex items-center justify-between pt-4 border-t border-white/10">
-            <div className="text-xl font-bold text-[#ff4d3d]" data-testid="text-price">
-              {priceDisplay}
-            </div>
-            <div className="text-white/40 text-sm">
-              Posted {new Date(listing.createdAt).toLocaleDateString()}
-            </div>
-          </div>
         </div>
 
-        <div className="bg-[#1a1d24] border border-white/10 rounded-lg p-6">
-          <h2 className="text-lg font-bold text-white mb-4">
-            Discussion ({comments.length})
+        <div className="border-t border-gray-200 pt-4 mb-6">
+          <p className="text-[14px] text-gray-800 whitespace-pre-wrap leading-relaxed" data-testid="text-description">
+            {listing.description}
+          </p>
+        </div>
+
+        {listing.tags && listing.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-4 text-[11px]">
+            {listing.tags.map((tag, i) => (
+              <span key={i} className="text-purple-600" data-testid={`tag-${i}`}>
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="border-t border-gray-200 pt-3 mb-6 text-[11px] text-gray-500">
+          <span>post id: {listing.id.slice(0, 8)}</span>
+          <span className="mx-4">posted: {getRelativeTime(listing.createdAt)}</span>
+          <span className="mx-4">status: {listing.status}</span>
+        </div>
+
+        <div className="border-t border-gray-300 pt-6">
+          <h2 className="text-[14px] font-bold text-purple-800 border-b border-gray-200 pb-2 mb-4">
+            💬 discussion ({comments.length})
           </h2>
 
           <div className="mb-6">
             {replyTo && (
-              <div className="text-sm text-white/50 mb-2 flex items-center gap-2">
+              <div className="text-[12px] text-gray-500 mb-2 flex items-center gap-2">
                 Replying to comment
-                <button onClick={() => setReplyTo(null)} className="text-[#ff4d3d] hover:underline" data-testid="button-cancel-reply">
+                <button onClick={() => setReplyTo(null)} className="text-purple-600 hover:underline" data-testid="button-cancel-reply">
                   cancel
                 </button>
               </div>
             )}
-            <Textarea
+            <textarea
               placeholder={replyTo ? "Write a reply..." : "Join the discussion..."}
               value={commentContent}
               onChange={(e) => setCommentContent(e.target.value)}
-              className="bg-white/5 border-white/20 text-white min-h-[80px]"
+              className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] text-gray-800 placeholder:text-gray-400 outline-none focus:border-purple-400 min-h-[80px]"
               data-testid="input-comment"
             />
             <div className="flex justify-end mt-2">
-              <Button
+              <button
                 onClick={handleSubmitComment}
                 disabled={!commentContent.trim() || commentMutation.isPending}
-                className="bg-[#ff4d3d] hover:bg-[#e6443a] text-white"
+                className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-300 text-white px-4 py-1 rounded text-[12px] transition"
                 data-testid="button-submit-comment"
               >
-                {commentMutation.isPending ? "Posting..." : replyTo ? "Reply" : "Comment"}
-              </Button>
+                {commentMutation.isPending ? "Posting..." : replyTo ? "Reply" : "Post Comment"}
+              </button>
             </div>
             {commentMutation.isError && (
-              <p className="text-red-400 text-sm mt-2">{(commentMutation.error as Error).message}</p>
+              <p className="text-red-500 text-[12px] mt-2">{(commentMutation.error as Error).message}</p>
             )}
           </div>
 
-          <div className="divide-y divide-white/5">
+          <div className="space-y-1">
             {commentTree.length === 0 ? (
-              <p className="text-white/40 text-center py-8">No comments yet. Be the first to comment!</p>
+              <p className="text-gray-400 text-center py-6 text-[13px]">No comments yet. Be the first to comment!</p>
             ) : (
               commentTree.map((comment) => (
                 <CommentThread key={comment.id} comment={comment} onReply={handleReply} />
@@ -294,6 +306,17 @@ export default function ListingPage() {
           </div>
         </div>
       </main>
+
+      <footer className="bg-gray-100 border-t border-gray-300 py-4 mt-10">
+        <div className="max-w-5xl mx-auto px-4 text-center text-[11px] text-gray-500">
+          <div className="mb-2">
+            <a href="/safety" className="text-purple-700 hover:underline no-underline mx-2">safety</a>
+            <a href="/terms" className="text-purple-700 hover:underline no-underline mx-2">terms</a>
+            <a href="/about" className="text-purple-700 hover:underline no-underline mx-2">about</a>
+          </div>
+          <p>© 2026 moltslist</p>
+        </div>
+      </footer>
     </div>
   );
 }
