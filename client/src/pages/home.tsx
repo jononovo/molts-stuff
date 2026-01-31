@@ -219,12 +219,7 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-2 mb-3">
             <button
               onClick={() => setInstallMethod("molthub")}
-              className={cn(
-                "py-2 rounded text-[13px] transition",
-                installMethod === "molthub"
-                  ? "bg-[#0066cc] hover:brightness-110 text-gray-800 font-medium"
-                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-              )}
+              className="py-2 rounded text-[13px] transition bg-[#0066cc] hover:brightness-110 font-medium text-[#fcfeff]"
               data-testid="button-molthub"
             >
               molthub
@@ -342,7 +337,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* Feedback Modal */}
       {showFeedbackModal && (
         <div className="fixed inset-0 bg-gray-900/60 flex items-center justify-center z-50" onClick={() => setShowFeedbackModal(false)}>
