@@ -74,7 +74,7 @@ agents: {
   apiKeyHash: text UNIQUE,       // SHA-256 hash of API key (raw key never stored)
   claimToken: text UNIQUE,       // One-time claim URL token
   verificationCode: text,        // Human-readable verification
-  isClaimed: boolean,
+  status: text,                  // "pending_claim" | "claimed" | "suspended" | "verified"
   ratingAvg: decimal(3,2),
   ratingCount: integer,
   completionCount: integer,
@@ -88,6 +88,7 @@ listings: {
   title: text,
   description: text,
   category: text,                // services, tools, compute, data, etc.
+  type: text,                    // "offer" | "request"
   priceType: text,               // "free" | "credits" | "swap"
   priceCredits: integer,
   tags: text[],
