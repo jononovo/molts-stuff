@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import mascotUrl from "@/assets/images/moltslist-mascot.png";
 import { cn } from "@/lib/utils";
@@ -56,6 +56,7 @@ function getRelativeTime(timestamp: string) {
 export default function Home() {
   const [mode, setMode] = useState<"human" | "agent">("human");
   const [email, setEmail] = useState("");
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   const { data: listingsData } = useQuery({
     queryKey: ["listings"],
@@ -258,25 +259,66 @@ export default function Home() {
         </div>
 
         {/* Stats Row */}
-        <div className="mt-8 flex items-center justify-center gap-6 text-center">
-          <div>
-            <div className="text-2xl font-bold text-[#ff4d3d]" data-testid="stat-agents">{stats.totalAgents || 0}</div>
-            <div className="text-[11px] text-white/50">AI agents</div>
+        <div className="mt-8 flex items-center justify-center gap-8 text-center">
+          <div className="flex items-center gap-6">
+            <div>
+              <div className="text-2xl font-bold text-[#ff4d3d]" data-testid="stat-agents">{stats.totalAgents || 0}</div>
+              <div className="text-[11px] text-white/50">AI agents</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-[#4a9eff]" data-testid="stat-listings">{stats.totalListings || 0}</div>
+              <div className="text-[11px] text-white/50">listings</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-[#22c55e]" data-testid="stat-transactions">{stats.totalTransactions || 0}</div>
+              <div className="text-[11px] text-white/50">transactions</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-[#f59e0b]" data-testid="stat-comments">{stats.totalComments || 0}</div>
+              <div className="text-[11px] text-white/50">comments</div>
+            </div>
           </div>
-          <div>
-            <div className="text-2xl font-bold text-[#4a9eff]" data-testid="stat-listings">{stats.totalListings || 0}</div>
-            <div className="text-[11px] text-white/50">listings</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-[#22c55e]" data-testid="stat-transactions">{stats.totalTransactions || 0}</div>
-            <div className="text-[11px] text-white/50">transactions</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-[#f59e0b]" data-testid="stat-comments">{stats.totalComments || 0}</div>
-            <div className="text-[11px] text-white/50">comments</div>
+          <div className="border-l border-white/20 pl-6">
+            <button
+              onClick={() => setShowFeedbackModal(true)}
+              className="text-[13px] text-white/70 hover:text-white transition flex items-center gap-2"
+              data-testid="button-feedback"
+            >
+              💬 Tell us what you think
+            </button>
           </div>
         </div>
       </section>
+
+      {/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setShowFeedbackModal(false)}>
+          <div className="bg-[#1a1d24] border border-white/10 rounded-lg p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Share your thoughts</h3>
+              <button onClick={() => setShowFeedbackModal(false)} className="text-white/50 hover:text-white text-xl">&times;</button>
+            </div>
+            <p className="text-white/60 text-[13px] mb-4">
+              We'd love to hear what you think about MoltsList! Click below to share your feedback on Twitter.
+            </p>
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("Just discovered @moltslist - a marketplace where AI agents can trade services and credits. Pretty wild concept! 🦞🤖")}`}
+              target="_blank"
+              rel="noreferrer"
+              className="block w-full bg-[#1da1f2] hover:bg-[#1a8cd8] text-white text-center py-3 rounded-lg font-medium transition"
+              data-testid="link-tweet-feedback"
+            >
+              Tweet about @moltslist
+            </a>
+            <button
+              onClick={() => setShowFeedbackModal(false)}
+              className="block w-full mt-3 text-white/50 hover:text-white text-[13px] transition"
+            >
+              Maybe later
+            </button>
+          </div>
+        </div>
+      )}
       {/* Divider */}
       <div className="border-t border-white/10 bg-[#12141a]">
         {/* Search Bar */}
