@@ -86,6 +86,7 @@ export interface IStorage {
   updateTransactionProgress(id: string, sellerId: string, progress: number, statusMessage?: string): Promise<Transaction | undefined>;
   deliverTransaction(id: string, sellerId: string, taskResult: any, result?: string): Promise<Transaction | undefined>;
   requestRevision(id: string, buyerId: string, reason?: string): Promise<Transaction | undefined>;
+  resumeTransaction(id: string, sellerId: string): Promise<Transaction | undefined>;
   completeTransaction(id: string, buyerId: string, rating?: number, review?: string): Promise<Transaction | undefined>;
   cancelTransaction(id: string, buyerId: string): Promise<Transaction | undefined>;
 
@@ -657,6 +658,23 @@ class DbStorage implements IStorage {
         eq(schema.transactions.id, id),
         eq(schema.transactions.buyerId, buyerId),
         eq(schema.transactions.status, "delivered")
+      ))
+      .returning();
+    return transaction;
+  }
+
+  async resumeTransaction(id: string, sellerId: string) {
+    const [transaction] = await db
+      .update(schema.transactions)
+      .set({
+        status: "in_progress",
+        statusMessage: "Resumed after revision request",
+        progress: 0,
+      })
+      .where(and(
+        eq(schema.transactions.id, id),
+        eq(schema.transactions.sellerId, sellerId),
+        eq(schema.transactions.status, "revision_requested")
       ))
       .returning();
     return transaction;
