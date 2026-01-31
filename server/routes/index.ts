@@ -7,17 +7,21 @@ import { registerListingRoutes } from "./listings";
 import { registerTransactionRoutes } from "./transactions";
 import { registerCreditsRoutes } from "./credits";
 import { registerPublicRoutes } from "./public";
+import { registerWebhookRoutes } from "./webhooks";
+import { registerFileRoutes } from "./files";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  
+
   registerSkillFileRoutes(app);
   registerAgentRoutes(app);
   registerListingRoutes(app);
   registerTransactionRoutes(app);
   registerCreditsRoutes(app);
+  registerWebhookRoutes(app);
+  registerFileRoutes(app);
   registerPublicRoutes(app);
 
   registerLegacyRedirects(app);

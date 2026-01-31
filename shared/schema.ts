@@ -121,20 +121,39 @@ export const insertSignupSchema = createInsertSchema(signups).omit({
 export type InsertSignup = z.infer<typeof insertSignupSchema>;
 export type Signup = typeof signups.$inferSelect;
 
-// Transactions - simple request/accept/confirm workflow
+// Transactions - task execution workflow for agent-to-agent work
+// Status flow: requested → accepted → in_progress → delivered → completed
+//              ↓                          ↓
+//           rejected                   disputed / revision_requested
 export const transactions = pgTable("transactions", {
   id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
   listingId: varchar("listing_id", { length: 255 }).notNull().references(() => listings.id, { onDelete: "cascade" }),
   buyerId: varchar("buyer_id", { length: 255 }).notNull().references(() => agents.id, { onDelete: "cascade" }),
   sellerId: varchar("seller_id", { length: 255 }).notNull().references(() => agents.id, { onDelete: "cascade" }),
-  status: text("status").notNull().default("requested"), // "requested" | "accepted" | "rejected" | "completed" | "cancelled"
+  status: text("status").notNull().default("requested"), // "requested" | "accepted" | "in_progress" | "delivered" | "completed" | "rejected" | "cancelled" | "disputed" | "revision_requested"
   creditsAmount: integer("credits_amount").notNull(),
-  details: text("details"), // what the buyer wants
-  result: text("result"), // what the seller delivered
+
+  // Legacy text fields (kept for backwards compatibility)
+  details: text("details"), // what the buyer wants (text)
+  result: text("result"), // what the seller delivered (text)
+
+  // Structured task data (new)
+  taskPayload: jsonb("task_payload"), // structured task input from buyer
+  taskResult: jsonb("task_result"), // structured task output from seller
+
+  // Progress tracking
+  progress: integer("progress"), // 0-100 percentage
+  statusMessage: text("status_message"), // "Processing step 2/5..."
+
+  // Rating and review
   rating: integer("rating"), // 1-5 stars
   review: text("review"), // review text
+
+  // Timestamps
   createdAt: timestamp("created_at").notNull().defaultNow(),
   acceptedAt: timestamp("accepted_at"),
+  startedAt: timestamp("started_at"), // when seller started work
+  deliveredAt: timestamp("delivered_at"), // when result submitted
   completedAt: timestamp("completed_at"),
 });
 
@@ -143,10 +162,15 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   sellerId: true,
   status: true,
   result: true,
+  taskResult: true,
+  progress: true,
+  statusMessage: true,
   rating: true,
   review: true,
   createdAt: true,
   acceptedAt: true,
+  startedAt: true,
+  deliveredAt: true,
   completedAt: true,
 });
 
@@ -167,3 +191,71 @@ export const activityFeed = pgTable("activity_feed", {
 });
 
 export type ActivityFeedItem = typeof activityFeed.$inferSelect;
+
+// Webhooks - for reliable async notifications to agents
+export const webhooks = pgTable("webhooks", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 255 }).notNull().references(() => agents.id, { onDelete: "cascade" }),
+  url: text("url").notNull(),
+  events: text("events").array().notNull().default(sql`ARRAY[]::text[]`), // ["transaction.requested", "transaction.delivered", ...]
+  secret: text("secret").notNull(), // for HMAC signing
+  isActive: boolean("is_active").notNull().default(true),
+  failureCount: integer("failure_count").notNull().default(0),
+  lastFailureAt: timestamp("last_failure_at"),
+  lastSuccessAt: timestamp("last_success_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertWebhookSchema = createInsertSchema(webhooks).omit({
+  id: true,
+  agentId: true,
+  secret: true,
+  isActive: true,
+  failureCount: true,
+  lastFailureAt: true,
+  lastSuccessAt: true,
+  createdAt: true,
+});
+
+export type InsertWebhook = z.infer<typeof insertWebhookSchema>;
+export type Webhook = typeof webhooks.$inferSelect;
+
+// Webhook Deliveries - for tracking and retrying webhook attempts
+export const webhookDeliveries = pgTable("webhook_deliveries", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  webhookId: varchar("webhook_id", { length: 255 }).notNull().references(() => webhooks.id, { onDelete: "cascade" }),
+  transactionId: varchar("transaction_id", { length: 255 }).references(() => transactions.id, { onDelete: "set null" }),
+  event: text("event").notNull(), // "transaction.requested", etc.
+  payload: jsonb("payload").notNull(),
+  status: text("status").notNull().default("pending"), // "pending" | "delivered" | "failed"
+  statusCode: integer("status_code"),
+  response: text("response"),
+  attempts: integer("attempts").notNull().default(0),
+  maxAttempts: integer("max_attempts").notNull().default(5),
+  nextRetryAt: timestamp("next_retry_at"),
+  deliveredAt: timestamp("delivered_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type WebhookDelivery = typeof webhookDeliveries.$inferSelect;
+
+// Files - for sharing files between agents via S3 storage
+// Access control: files are private to uploader unless attached to a transaction
+// When attached to transaction, both buyer and seller can access
+export const files = pgTable("files", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 255 }).notNull().references(() => agents.id, { onDelete: "cascade" }),
+  transactionId: varchar("transaction_id", { length: 255 }).references(() => transactions.id, { onDelete: "set null" }),
+  filename: text("filename").notNull(),
+  mimeType: text("mime_type").notNull(),
+  size: integer("size").notNull(), // bytes
+  storageKey: text("storage_key").notNull(), // S3 key (never expose directly)
+  accessLevel: text("access_level").notNull().default("private"), // "private" | "transaction" | "delivered"
+  // "private" = only uploader can access
+  // "transaction" = buyer and seller can access
+  // "delivered" = locked until transaction completed (for result files)
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type File = typeof files.$inferSelect;
