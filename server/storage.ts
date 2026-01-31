@@ -20,6 +20,12 @@ import type {
   InsertWebhook,
   WebhookDelivery,
   File,
+  AgentWallet,
+  InsertAgentWallet,
+  Escrow,
+  InsertEscrow,
+  EscrowEvent,
+  Karma,
 } from "@shared/schema";
 import { randomBytes, createHash } from "crypto";
 
@@ -129,6 +135,27 @@ export interface IStorage {
   // Stats
   getCounts(): Promise<{ agents: number; listings: number; transactions: number; comments: number }>;
   getLeaderboard(limit: number): Promise<{ name: string; credits: number; completions: number }[]>;
+
+  // Agent Wallets
+  getWallet(agentId: string): Promise<AgentWallet | undefined>;
+  createWallet(agentId: string, data: Partial<InsertAgentWallet>): Promise<AgentWallet>;
+  updateWallet(agentId: string, data: Partial<InsertAgentWallet>): Promise<AgentWallet | undefined>;
+  verifyWallet(agentId: string, chain: "solana" | "evm"): Promise<AgentWallet | undefined>;
+  disconnectWallet(agentId: string, chain: "solana" | "evm"): Promise<AgentWallet | undefined>;
+
+  // Escrows
+  createEscrow(data: InsertEscrow): Promise<Escrow>;
+  getEscrow(id: string): Promise<Escrow | undefined>;
+  getEscrowByTransaction(transactionId: string): Promise<Escrow | undefined>;
+  updateEscrowStatus(id: string, status: string, data?: Partial<Escrow>): Promise<Escrow | undefined>;
+  logEscrowEvent(escrowId: string, eventType: string, previousStatus: string | null, newStatus: string, txSignature?: string, blockNumber?: string, metadata?: any): Promise<EscrowEvent>;
+  getEscrowEvents(escrowId: string): Promise<EscrowEvent[]>;
+  getPendingEscrows(): Promise<Escrow[]>;
+
+  // Karma
+  getKarma(agentId: string): Promise<Karma>;
+  addKarma(agentId: string, amount: number, source: "completions" | "ratings"): Promise<Karma>;
+  getKarmaLeaderboard(limit: number): Promise<{ agentId: string; name: string; balance: number; lifetimeEarned: number }[]>;
 }
 
 class DbStorage implements IStorage {
@@ -930,6 +957,220 @@ class DbStorage implements IStorage {
       name: r.name,
       credits: Number(r.credits || 0),
       completions: Number(r.completions || 0),
+    }));
+  }
+
+  // Agent Wallets
+  async getWallet(agentId: string) {
+    const [wallet] = await db
+      .select()
+      .from(schema.agentWallets)
+      .where(eq(schema.agentWallets.agentId, agentId))
+      .limit(1);
+    return wallet;
+  }
+
+  async createWallet(agentId: string, data: Partial<InsertAgentWallet>) {
+    const [wallet] = await db
+      .insert(schema.agentWallets)
+      .values({
+        agentId,
+        ...data,
+      })
+      .returning();
+    return wallet;
+  }
+
+  async updateWallet(agentId: string, data: Partial<InsertAgentWallet>) {
+    const [wallet] = await db
+      .update(schema.agentWallets)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.agentWallets.agentId, agentId))
+      .returning();
+    return wallet;
+  }
+
+  async verifyWallet(agentId: string, chain: "solana" | "evm") {
+    const field = chain === "solana" ? { solanaVerified: true } : { evmVerified: true };
+    const [wallet] = await db
+      .update(schema.agentWallets)
+      .set({
+        ...field,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.agentWallets.agentId, agentId))
+      .returning();
+    return wallet;
+  }
+
+  async disconnectWallet(agentId: string, chain: "solana" | "evm") {
+    const field = chain === "solana"
+      ? { solanaAddress: null, solanaVerified: false }
+      : { evmAddress: null, evmVerified: false };
+    const [wallet] = await db
+      .update(schema.agentWallets)
+      .set({
+        ...field,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.agentWallets.agentId, agentId))
+      .returning();
+    return wallet;
+  }
+
+  // Escrows
+  async createEscrow(data: InsertEscrow) {
+    const [escrow] = await db
+      .insert(schema.escrows)
+      .values(data)
+      .returning();
+    return escrow;
+  }
+
+  async getEscrow(id: string) {
+    const [escrow] = await db
+      .select()
+      .from(schema.escrows)
+      .where(eq(schema.escrows.id, id))
+      .limit(1);
+    return escrow;
+  }
+
+  async getEscrowByTransaction(transactionId: string) {
+    const [escrow] = await db
+      .select()
+      .from(schema.escrows)
+      .where(eq(schema.escrows.transactionId, transactionId))
+      .limit(1);
+    return escrow;
+  }
+
+  async updateEscrowStatus(id: string, status: string, data?: Partial<Escrow>) {
+    const updateData: any = {
+      status,
+      updatedAt: new Date(),
+    };
+
+    if (status === "funded") updateData.fundedAt = new Date();
+    if (status === "verified") updateData.verifiedAt = new Date();
+    if (status === "released" || status === "refunded") updateData.releasedAt = new Date();
+
+    if (data) {
+      Object.assign(updateData, data);
+    }
+
+    const [escrow] = await db
+      .update(schema.escrows)
+      .set(updateData)
+      .where(eq(schema.escrows.id, id))
+      .returning();
+    return escrow;
+  }
+
+  async logEscrowEvent(escrowId: string, eventType: string, previousStatus: string | null, newStatus: string, txSignature?: string, blockNumber?: string, metadata?: any) {
+    const [event] = await db
+      .insert(schema.escrowEvents)
+      .values({
+        escrowId,
+        eventType,
+        previousStatus,
+        newStatus,
+        txSignature,
+        blockNumber,
+        metadata,
+      })
+      .returning();
+    return event;
+  }
+
+  async getEscrowEvents(escrowId: string) {
+    const events = await db
+      .select()
+      .from(schema.escrowEvents)
+      .where(eq(schema.escrowEvents.escrowId, escrowId))
+      .orderBy(desc(schema.escrowEvents.createdAt));
+    return events;
+  }
+
+  async getPendingEscrows() {
+    const escrows = await db
+      .select()
+      .from(schema.escrows)
+      .where(or(
+        eq(schema.escrows.status, "pending"),
+        eq(schema.escrows.status, "funded")
+      )!)
+      .orderBy(schema.escrows.createdAt);
+    return escrows;
+  }
+
+  // Karma
+  async getKarma(agentId: string) {
+    let [karma] = await db
+      .select()
+      .from(schema.karma)
+      .where(eq(schema.karma.agentId, agentId))
+      .limit(1);
+
+    if (!karma) {
+      [karma] = await db
+        .insert(schema.karma)
+        .values({
+          agentId,
+          balance: 0,
+          lifetimeEarned: 0,
+          fromCompletions: 0,
+          fromRatings: 0,
+        })
+        .returning();
+    }
+
+    return karma;
+  }
+
+  async addKarma(agentId: string, amount: number, source: "completions" | "ratings") {
+    // Ensure karma record exists
+    await this.getKarma(agentId);
+
+    const sourceField = source === "completions"
+      ? { fromCompletions: sql`${schema.karma.fromCompletions} + ${amount}` }
+      : { fromRatings: sql`${schema.karma.fromRatings} + ${amount}` };
+
+    const [karma] = await db
+      .update(schema.karma)
+      .set({
+        balance: sql`${schema.karma.balance} + ${amount}`,
+        lifetimeEarned: sql`${schema.karma.lifetimeEarned} + ${amount}`,
+        ...sourceField,
+        lastActivityAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.karma.agentId, agentId))
+      .returning();
+    return karma;
+  }
+
+  async getKarmaLeaderboard(limit: number) {
+    const results = await db
+      .select({
+        agentId: schema.karma.agentId,
+        name: schema.agents.name,
+        balance: schema.karma.balance,
+        lifetimeEarned: schema.karma.lifetimeEarned,
+      })
+      .from(schema.karma)
+      .innerJoin(schema.agents, eq(schema.karma.agentId, schema.agents.id))
+      .orderBy(desc(schema.karma.balance))
+      .limit(limit);
+
+    return results.map(r => ({
+      agentId: r.agentId,
+      name: r.name,
+      balance: Number(r.balance || 0),
+      lifetimeEarned: Number(r.lifetimeEarned || 0),
     }));
   }
 }

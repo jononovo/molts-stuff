@@ -9,6 +9,10 @@ import { registerCreditsRoutes } from "./credits";
 import { registerPublicRoutes } from "./public";
 import { registerWebhookRoutes } from "./webhooks";
 import { registerFileRoutes } from "./files";
+import { registerWalletRoutes } from "./wallets";
+import { registerEscrowRoutes } from "./escrow";
+import { registerX402Routes } from "./x402";
+import { registerKarmaRoutes } from "./karma";
 import { registerObjectStorageRoutes } from "../replit_integrations/object_storage";
 
 export async function registerRoutes(
@@ -23,6 +27,10 @@ export async function registerRoutes(
   registerCreditsRoutes(app);
   registerWebhookRoutes(app);
   registerFileRoutes(app);
+  registerWalletRoutes(app);
+  registerEscrowRoutes(app);
+  registerX402Routes(app);
+  registerKarmaRoutes(app);
   registerObjectStorageRoutes(app);
   registerPublicRoutes(app);
 

@@ -9,6 +9,9 @@ const requestTransactionSchema = z.object({
   creditsAmount: z.number().optional(),
   details: z.string().optional(),
   taskPayload: z.any().optional(), // Free-form structured data
+  paymentMethod: z.enum(["credits", "escrow"]).optional().default("credits"),
+  chain: z.enum(["solana", "base"]).optional(),
+  buyerAddress: z.string().optional(), // Required for escrow payments
 });
 
 const progressSchema = z.object({
@@ -43,7 +46,7 @@ export function registerTransactionRoutes(app: Express) {
         });
       }
 
-      const { listingId, creditsAmount, details, taskPayload } = parsed.data;
+      const { listingId, creditsAmount, details, taskPayload, paymentMethod, chain, buyerAddress } = parsed.data;
 
       const listing = await storage.getListing(listingId);
       if (!listing) {
@@ -54,6 +57,116 @@ export function registerTransactionRoutes(app: Express) {
         return res.status(400).json({ success: false, error: "Cannot request your own listing" });
       }
 
+      // Handle escrow payment method
+      if (paymentMethod === "escrow") {
+        if (!listing.acceptsUsdc || !listing.priceUsdc) {
+          return res.status(400).json({
+            success: false,
+            error: "This listing does not accept USDC payments",
+            hint: "Use paymentMethod: 'credits' instead",
+          });
+        }
+
+        if (!chain) {
+          return res.status(400).json({
+            success: false,
+            error: "Chain is required for escrow payments",
+            hint: "Specify chain: 'solana' or 'base'",
+          });
+        }
+
+        if (!buyerAddress) {
+          return res.status(400).json({
+            success: false,
+            error: "Buyer wallet address is required for escrow payments",
+            hint: "Provide buyerAddress in the request",
+          });
+        }
+
+        // Get seller's wallet
+        const sellerWallet = await storage.getWallet(listing.agentId);
+        if (!sellerWallet) {
+          return res.status(400).json({
+            success: false,
+            error: "Seller has no wallet connected",
+            hint: "Seller must connect a wallet to receive USDC payments",
+          });
+        }
+
+        const sellerAddress = chain === "solana" ? sellerWallet.solanaAddress : sellerWallet.evmAddress;
+        if (!sellerAddress) {
+          return res.status(400).json({
+            success: false,
+            error: `Seller has no ${chain} wallet connected`,
+          });
+        }
+
+        // Create transaction (credits amount is 0 for escrow)
+        const transaction = await storage.createTransaction(
+          req.agent.id,
+          listingId,
+          0, // No credits for escrow
+          details,
+          taskPayload
+        );
+
+        // Create escrow
+        const amountUsd = parseFloat(listing.priceUsdc!.toString());
+        const amountLamports = Math.floor(amountUsd * 1_000_000);
+
+        const escrow = await storage.createEscrow({
+          transactionId: transaction.id,
+          chain,
+          currency: "USDC",
+          amountLamports: amountLamports.toString(),
+          amountUsd: amountUsd.toString(),
+          buyerAddress,
+          sellerAddress,
+        });
+
+        await storage.logEscrowEvent(
+          escrow.id,
+          "created",
+          null,
+          "pending",
+          undefined,
+          undefined,
+          { amount_usd: amountUsd, chain }
+        );
+
+        // Send notifications
+        const data = await loadTransactionData(transaction.id);
+        if (data) {
+          await notifyTransactionEvent("transaction.requested", data);
+        }
+
+        const seller = await storage.getAgentById(listing.agentId);
+
+        return res.status(201).json({
+          success: true,
+          transaction: {
+            id: transaction.id,
+            listing_id: transaction.listingId,
+            seller_name: seller?.name,
+            payment_method: "escrow",
+            status: transaction.status,
+            task_payload: transaction.taskPayload,
+            created_at: transaction.createdAt,
+          },
+          escrow: {
+            id: escrow.id,
+            chain: escrow.chain,
+            amount_usd: amountUsd,
+            amount_lamports: amountLamports.toString(),
+            buyer_address: buyerAddress,
+            seller_address: sellerAddress,
+            status: escrow.status,
+          },
+          next_step: "Fund the escrow by sending USDC and calling POST /api/v1/escrow/:id/fund with the transaction signature",
+        });
+      }
+
+      // Standard credits payment
       const amount = creditsAmount || listing.priceCredits || 0;
       const credits = await storage.getCredits(req.agent.id);
       if (credits.balance < amount) {
@@ -112,13 +225,14 @@ export function registerTransactionRoutes(app: Express) {
         return res.status(403).json({ success: false, error: "Not authorized to view this transaction" });
       }
 
-      const [listing, buyer, seller] = await Promise.all([
+      const [listing, buyer, seller, escrow] = await Promise.all([
         storage.getListing(transaction.listingId),
         storage.getAgentById(transaction.buyerId),
         storage.getAgentById(transaction.sellerId),
+        storage.getEscrowByTransaction(transaction.id),
       ]);
 
-      return res.json({
+      const response: any = {
         success: true,
         transaction: {
           id: transaction.id,
@@ -129,6 +243,7 @@ export function registerTransactionRoutes(app: Express) {
           seller_id: transaction.sellerId,
           seller_name: seller?.name,
           status: transaction.status,
+          payment_method: transaction.paymentMethod,
           credits_amount: transaction.creditsAmount,
           details: transaction.details,
           task_payload: transaction.taskPayload,
@@ -144,7 +259,23 @@ export function registerTransactionRoutes(app: Express) {
           delivered_at: transaction.deliveredAt,
           completed_at: transaction.completedAt,
         },
-      });
+      };
+
+      // Include escrow information if payment method is escrow
+      if (escrow) {
+        response.escrow = {
+          id: escrow.id,
+          chain: escrow.chain,
+          currency: escrow.currency,
+          amount_usd: escrow.amountUsd,
+          status: escrow.status,
+          funded_at: escrow.fundedAt,
+          verified_at: escrow.verifiedAt,
+          released_at: escrow.releasedAt,
+        };
+      }
+
+      return res.json(response);
     } catch (error) {
       console.error("Get transaction error:", error);
       return res.status(500).json({ success: false, error: "Failed to get transaction" });

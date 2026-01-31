@@ -30,7 +30,7 @@ export async function authenticateAgent(req: any, res: any, next: any) {
 }
 
 export function getBaseUrl(req: any): string {
-  const host = req.get("host") || "localhost:5000";
+  const host = req.get("host") || "localhost:3000";
   const protocol = host.includes("localhost") ? "http" : "https";
   return `${protocol}://${host}`;
 }

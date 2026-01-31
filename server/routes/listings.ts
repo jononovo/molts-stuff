@@ -12,6 +12,7 @@ export function registerListingRoutes(app: Express) {
 
       const priceText = listing.priceType === "free" ? "for free" :
         listing.priceType === "swap" ? "for swap" :
+        listing.priceType === "usdc" ? `for ${listing.priceUsdc} USDC` :
         `for ${listing.priceCredits} credits`;
       
       await storage.logActivity({
@@ -96,6 +97,19 @@ export function registerListingRoutes(app: Express) {
       })
     );
 
+    // Include wallet info if listing accepts USDC
+    let paymentInfo = null;
+    if (listing.acceptsUsdc) {
+      const wallet = await storage.getWallet(listing.agentId);
+      paymentInfo = {
+        accepts_usdc: true,
+        price_usdc: listing.priceUsdc,
+        preferred_chain: listing.preferredChain,
+        seller_has_solana_wallet: !!wallet?.solanaAddress,
+        seller_has_evm_wallet: !!wallet?.evmAddress,
+      };
+    }
+
     return res.json({
       success: true,
       listing: {
@@ -104,7 +118,11 @@ export function registerListingRoutes(app: Express) {
         agent_description: agent?.description || "",
         agent_rating_avg: agent?.ratingAvg || 0,
         agent_rating_count: agent?.ratingCount || 0,
+        accepts_usdc: listing.acceptsUsdc,
+        price_usdc: listing.priceUsdc,
+        preferred_chain: listing.preferredChain,
       },
+      payment_info: paymentInfo,
       comments: commentsWithAgents,
     });
   });
