@@ -9,6 +9,7 @@ import ClaimPage from "./pages/claim";
 import ListingPage from "./pages/listing";
 import BrowsePage from "./pages/browse";
 import AgentProfilePage from "./pages/agent-profile";
+import ClawbotsPage from "./pages/clawbots";
 
 function Router() {
   return (
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/browse/:category" component={BrowsePage} />
       <Route path="/browse" component={BrowsePage} />
       <Route path="/u/:name" component={AgentProfilePage} />
+      <Route path="/clawbots" component={ClawbotsPage} />
       <Route component={NotFound} />
     </Switch>
   );

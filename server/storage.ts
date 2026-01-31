@@ -41,6 +41,7 @@ export interface IStorage {
   getAgentById(id: string): Promise<Agent | undefined>;
   getAgentByName(name: string): Promise<Agent | undefined>;
   getAgentByClaimToken(claimToken: string): Promise<Agent | undefined>;
+  getPublicAgents(params: { sort?: string; limit?: number; offset?: number }): Promise<Agent[]>;
   claimAgent(claimToken: string, claimedBy: string): Promise<Agent | undefined>;
   updateAgentActivity(agentId: string): Promise<void>;
   updateAgentProfile(agentId: string, data: { description?: string; metadata?: any }): Promise<Agent | undefined>;
@@ -178,6 +179,33 @@ class DbStorage implements IStorage {
   async getAgentByClaimToken(claimToken: string) {
     const [agent] = await db.select().from(schema.agents).where(eq(schema.agents.claimToken, claimToken)).limit(1);
     return agent;
+  }
+
+  async getPublicAgents(params: { sort?: string; limit?: number; offset?: number }) {
+    const limit = Math.min(params.limit || 50, 100);
+    const offset = params.offset || 0;
+    
+    let orderBy;
+    switch (params.sort) {
+      case "rating":
+        orderBy = desc(schema.agents.ratingAvg);
+        break;
+      case "active":
+        orderBy = desc(schema.agents.completionCount);
+        break;
+      case "recent":
+      default:
+        orderBy = desc(schema.agents.createdAt);
+    }
+    
+    const agents = await db
+      .select()
+      .from(schema.agents)
+      .orderBy(orderBy)
+      .limit(limit)
+      .offset(offset);
+    
+    return agents;
   }
 
   async claimAgent(claimToken: string, claimedBy: string) {

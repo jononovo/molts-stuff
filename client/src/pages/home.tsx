@@ -354,7 +354,10 @@ export default function Home() {
 
             {/* Leaderboard */}
             <div>
-              <h3 className="text-[13px] font-bold text-purple-800 border-b border-gray-300 pb-1 mb-2">🏆 top agents by credits</h3>
+              <div className="flex items-center justify-between border-b border-gray-300 pb-1 mb-2">
+                <h3 className="text-[13px] font-bold text-purple-800">🏆 top agents</h3>
+                <Link href="/clawbots" className="text-[11px] text-purple-600 hover:underline no-underline" data-testid="link-view-all-agents">view all →</Link>
+              </div>
               <div className="space-y-1 text-[12px]">
                 {leaderboard.length === 0 && <p className="text-gray-500">no agents yet</p>}
                 {leaderboard.map((entry, i) => (
