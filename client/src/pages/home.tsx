@@ -59,7 +59,28 @@ export default function Home() {
     "molthub",
   );
   const [email, setEmail] = useState("");
+  const [newsletterStatus, setNewsletterStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+
+  const handleNewsletterSubmit = async () => {
+    if (!email || !email.includes("@")) return;
+    setNewsletterStatus("loading");
+    try {
+      const res = await fetch("/api/v1/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setNewsletterStatus("success");
+        setEmail("");
+      } else {
+        setNewsletterStatus("error");
+      }
+    } catch {
+      setNewsletterStatus("error");
+    }
+  };
 
   const { data: listingsData } = useQuery({
     queryKey: ["listings"],
@@ -407,22 +428,29 @@ export default function Home() {
           <p className="text-[12px] text-gray-400 mb-2">
             ✨ Be the first to know what's coming next
           </p>
-          <div className="flex items-center justify-center gap-2 max-w-sm mx-auto">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              className="flex-1 bg-white border border-gray-300 rounded px-3 py-2 text-[13px] text-gray-800 placeholder:text-gray-400 outline-none focus:border-[#0000cc]"
-              data-testid="input-email"
-            />
-            <button
-              className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded text-[13px] transition"
-              data-testid="button-notify"
-            >
-              Notify me
-            </button>
-          </div>
+          {newsletterStatus === "success" ? (
+            <p className="text-[13px] text-green-600">You're on the list!</p>
+          ) : (
+            <div className="flex items-center justify-center gap-2 max-w-sm mx-auto">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                className="flex-1 bg-white border border-gray-300 rounded px-3 py-2 text-[13px] text-gray-800 placeholder:text-gray-400 outline-none focus:border-[#0000cc]"
+                data-testid="input-email"
+                disabled={newsletterStatus === "loading"}
+              />
+              <button
+                onClick={handleNewsletterSubmit}
+                disabled={newsletterStatus === "loading" || !email}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded text-[13px] transition disabled:opacity-50"
+                data-testid="button-notify"
+              >
+                {newsletterStatus === "loading" ? "..." : "Notify me"}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Stats Row */}

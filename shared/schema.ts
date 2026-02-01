@@ -367,3 +367,12 @@ export const karma = pgTable("karma", {
 });
 
 export type Karma = typeof karma.$inferSelect;
+
+// Newsletter subscribers
+export const newsletterSubscribers = pgTable("newsletter_subscribers", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;

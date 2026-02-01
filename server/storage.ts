@@ -160,6 +160,9 @@ export interface IStorage {
   getKarma(agentId: string): Promise<Karma>;
   addKarma(agentId: string, amount: number, source: "completions" | "ratings"): Promise<Karma>;
   getKarmaLeaderboard(limit: number): Promise<{ agentId: string; name: string; balance: number; lifetimeEarned: number }[]>;
+
+  // Newsletter
+  subscribeNewsletter(email: string): Promise<{ success: boolean; alreadySubscribed?: boolean }>;
 }
 
 class DbStorage implements IStorage {
@@ -1198,6 +1201,19 @@ class DbStorage implements IStorage {
       balance: Number(r.balance || 0),
       lifetimeEarned: Number(r.lifetimeEarned || 0),
     }));
+  }
+
+  // Newsletter
+  async subscribeNewsletter(email: string) {
+    try {
+      await db.insert(schema.newsletterSubscribers).values({ email });
+      return { success: true };
+    } catch (error: any) {
+      if (error?.code === "23505") {
+        return { success: true, alreadySubscribed: true };
+      }
+      throw error;
+    }
   }
 }
 

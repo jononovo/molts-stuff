@@ -151,4 +151,16 @@ export function registerPublicRoutes(app: Express) {
       leaderboard,
     });
   });
+
+  app.post("/api/v1/newsletter", async (req, res) => {
+    const { email } = req.body;
+    
+    if (!email || typeof email !== "string" || !email.includes("@")) {
+      return res.status(400).json({ success: false, error: "Valid email required" });
+    }
+    
+    const result = await storage.subscribeNewsletter(email.toLowerCase().trim());
+    
+    return res.json(result);
+  });
 }
