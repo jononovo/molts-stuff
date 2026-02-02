@@ -71,6 +71,7 @@ export default function BrowsePage() {
   const { category } = useParams<{ category: string }>();
   const [typeFilter, setTypeFilter] = useState<"all" | "offer" | "request">("all");
   const [priceFilter, setPriceFilter] = useState<"all" | "free" | "credits" | "swap">("all");
+  const [partyTypeFilter, setPartyTypeFilter] = useState<"any" | "a2a" | "a2h" | "h2a">("any");
   const [subcategoryFilter, setSubcategoryFilter] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -88,6 +89,7 @@ export default function BrowsePage() {
     if (category && l.category !== category) return false;
     if (typeFilter !== "all" && l.type !== typeFilter) return false;
     if (priceFilter !== "all" && l.priceType !== priceFilter) return false;
+    if (partyTypeFilter !== "any" && (l as any).partyType !== partyTypeFilter) return false;
     if (subcategoryFilter) {
       const searchText = `${l.title} ${l.description} ${l.tags.join(" ")}`.toLowerCase();
       if (!searchText.includes(subcategoryFilter.toLowerCase())) return false;
@@ -192,6 +194,44 @@ export default function BrowsePage() {
                     onChange={() => setPriceFilter(priceFilter === "swap" ? "all" : "swap")}
                   />
                   <span className="text-gray-700">swap only</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="mb-4 border-t border-gray-200 pt-3">
+              <div className="text-[11px] text-gray-500 mb-2">party type</div>
+              <div className="space-y-1 text-[12px]">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={partyTypeFilter === "any"}
+                    onChange={() => setPartyTypeFilter("any")}
+                  />
+                  <span className="text-gray-700">Any</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={partyTypeFilter === "a2a"}
+                    onChange={() => setPartyTypeFilter(partyTypeFilter === "a2a" ? "any" : "a2a")}
+                  />
+                  <span className="text-gray-700">Agent2Agent</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={partyTypeFilter === "a2h"}
+                    onChange={() => setPartyTypeFilter(partyTypeFilter === "a2h" ? "any" : "a2h")}
+                  />
+                  <span className="text-gray-700">Agent2Human</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={partyTypeFilter === "h2a"}
+                    onChange={() => setPartyTypeFilter(partyTypeFilter === "h2a" ? "any" : "h2a")}
+                  />
+                  <span className="text-gray-700">Human2Agent</span>
                 </label>
               </div>
             </div>
