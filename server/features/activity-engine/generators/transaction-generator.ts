@@ -1,29 +1,56 @@
 import { storage } from "../../../storage";
 import { getTransactionTemplate } from "../templates/transactions";
 
-type TransactionPhase = "request" | "accept" | "complete";
+const pendingTransactionQueue: string[] = [];
+let recoveryCompleted = false;
 
-export async function generateTransaction(phase: TransactionPhase = "request"): Promise<{
+async function recoverStrandedTransactions(): Promise<void> {
+  if (recoveryCompleted) return;
+  recoveryCompleted = true;
+
+  try {
+    const agents = await storage.getPublicAgents({ limit: 50 });
+
+    for (const agent of agents) {
+      const incoming = await storage.getIncomingTransactions(agent.id);
+
+      for (const tx of incoming) {
+        if ((tx.status === "requested" || tx.status === "accepted") && 
+            !pendingTransactionQueue.includes(tx.id)) {
+          pendingTransactionQueue.push(tx.id);
+          console.log(`[ActivityEngine] Recovered stranded transaction: ${tx.id} (${tx.status})`);
+        }
+      }
+
+      if (pendingTransactionQueue.length >= 5) break;
+    }
+
+    if (pendingTransactionQueue.length > 0) {
+      console.log(`[ActivityEngine] Recovered ${pendingTransactionQueue.length} stranded transactions`);
+    }
+  } catch (error) {
+    console.error("[ActivityEngine] Failed to recover transactions:", error);
+  }
+}
+
+export async function generateTransaction(): Promise<{
   success: boolean;
   transactionId?: string;
-  phase: TransactionPhase;
+  action?: string;
   error?: string;
 }> {
   try {
-    if (phase === "request") {
-      return await createNewTransaction();
-    } else if (phase === "accept") {
-      return await acceptPendingTransaction();
-    } else if (phase === "complete") {
-      return await completePendingTransaction();
-    }
+    await recoverStrandedTransactions();
 
-    return { success: false, phase, error: "Unknown phase" };
+    if (pendingTransactionQueue.length > 0) {
+      return await advanceExistingTransaction();
+    } else {
+      return await createNewTransaction();
+    }
   } catch (error) {
-    console.error(`[ActivityEngine] Failed to ${phase} transaction:`, error);
+    console.error("[ActivityEngine] Failed transaction operation:", error);
     return {
       success: false,
-      phase,
       error: error instanceof Error ? error.message : "Unknown error",
     };
   }
@@ -32,14 +59,16 @@ export async function generateTransaction(phase: TransactionPhase = "request"): 
 async function createNewTransaction(): Promise<{
   success: boolean;
   transactionId?: string;
-  phase: TransactionPhase;
+  action?: string;
   error?: string;
 }> {
   const listings = await storage.getListings({ limit: 50 });
-  const creditListings = listings.filter((l) => l.priceType === "credits" && l.priceCredits && l.priceCredits > 0);
+  const creditListings = listings.filter(
+    (l) => l.priceType === "credits" && l.priceCredits && l.priceCredits > 0
+  );
 
   if (creditListings.length === 0) {
-    return { success: false, phase: "request", error: "No credit listings available" };
+    return { success: false, error: "No credit listings available" };
   }
 
   const randomListing = creditListings[Math.floor(Math.random() * creditListings.length)];
@@ -47,7 +76,7 @@ async function createNewTransaction(): Promise<{
 
   const eligibleBuyers = agents.filter((a) => a.id !== randomListing.agentId);
   if (eligibleBuyers.length === 0) {
-    return { success: false, phase: "request", error: "No eligible buyers" };
+    return { success: false, error: "No eligible buyers" };
   }
 
   const buyer = eligibleBuyers[Math.floor(Math.random() * eligibleBuyers.length)];
@@ -61,6 +90,8 @@ async function createNewTransaction(): Promise<{
     template.requestMessage
   );
 
+  pendingTransactionQueue.push(transaction.id);
+
   const seller = await storage.getAgentById(randomListing.agentId);
 
   await storage.logActivity({
@@ -73,95 +104,97 @@ async function createNewTransaction(): Promise<{
     metadata: { source: "activity_engine", partyType },
   });
 
-  console.log(`[ActivityEngine] Created transaction request for: ${randomListing.title.substring(0, 30)}...`);
+  console.log(`[ActivityEngine] Created transaction: ${transaction.id} for "${randomListing.title.substring(0, 30)}..."`);
 
   return {
     success: true,
     transactionId: transaction.id,
-    phase: "request",
+    action: "requested",
   };
 }
 
-async function acceptPendingTransaction(): Promise<{
+async function advanceExistingTransaction(): Promise<{
   success: boolean;
   transactionId?: string;
-  phase: TransactionPhase;
+  action?: string;
   error?: string;
 }> {
-  const agents = await storage.getPublicAgents({ limit: 100 });
+  const transactionId = pendingTransactionQueue[0];
+  const transaction = await storage.getTransaction(transactionId);
 
-  for (const agent of agents) {
-    const incoming = await storage.getIncomingTransactions(agent.id);
-    const pending = incoming.filter((t) => t.status === "requested");
-
-    if (pending.length > 0) {
-      const transaction = pending[0];
-      await storage.acceptTransaction(transaction.id, agent.id);
-
-      const buyer = await storage.getAgentById(transaction.buyerId);
-
-      await storage.logActivity({
-        eventType: "transaction",
-        eventAction: "accepted",
-        agentId: agent.id,
-        targetAgentId: transaction.buyerId,
-        referenceId: transaction.id,
-        summary: `${agent.name} accepted a request from ${buyer?.name || "unknown"}`,
-        metadata: { source: "activity_engine" },
-      });
-
-      console.log(`[ActivityEngine] Transaction accepted by: ${agent.name}`);
-
-      return {
-        success: true,
-        transactionId: transaction.id,
-        phase: "accept",
-      };
-    }
+  if (!transaction) {
+    pendingTransactionQueue.shift();
+    return { success: false, error: "Transaction not found" };
   }
 
-  return { success: false, phase: "accept", error: "No pending transactions to accept" };
+  if (transaction.status === "requested") {
+    const result = await storage.acceptTransaction(transactionId, transaction.sellerId);
+
+    if (!result) {
+      pendingTransactionQueue.shift();
+      return { success: false, error: "Failed to accept transaction" };
+    }
+
+    const buyer = await storage.getAgentById(transaction.buyerId);
+    const seller = await storage.getAgentById(transaction.sellerId);
+
+    await storage.logActivity({
+      eventType: "transaction",
+      eventAction: "accepted",
+      agentId: transaction.sellerId,
+      targetAgentId: transaction.buyerId,
+      referenceId: transactionId,
+      summary: `${seller?.name || "Seller"} accepted request from ${buyer?.name || "unknown"}`,
+      metadata: { source: "activity_engine" },
+    });
+
+    console.log(`[ActivityEngine] Transaction ${transactionId} accepted by ${seller?.name || "seller"}`);
+
+    return {
+      success: true,
+      transactionId,
+      action: "accepted",
+    };
+  }
+
+  if (transaction.status === "accepted") {
+    const rating = Math.floor(Math.random() * 2) + 4;
+
+    const result = await storage.completeTransaction(transactionId, transaction.buyerId, rating, "Great work!");
+
+    if (!result) {
+      pendingTransactionQueue.shift();
+      return { success: false, error: "Failed to complete transaction" };
+    }
+
+    pendingTransactionQueue.shift();
+
+    const buyer = await storage.getAgentById(transaction.buyerId);
+    const seller = await storage.getAgentById(transaction.sellerId);
+
+    await storage.logActivity({
+      eventType: "transaction",
+      eventAction: "completed",
+      agentId: transaction.buyerId,
+      targetAgentId: transaction.sellerId,
+      referenceId: transactionId,
+      summary: `${buyer?.name || "Buyer"} completed transaction with ${seller?.name || "seller"} (${rating}★)`,
+      metadata: { source: "activity_engine", rating },
+    });
+
+    console.log(`[ActivityEngine] Transaction ${transactionId} completed with ${rating}★ rating`);
+
+    return {
+      success: true,
+      transactionId,
+      action: "completed",
+    };
+  }
+
+  pendingTransactionQueue.shift();
+  return { success: false, error: `Transaction in unexpected status: ${transaction.status}` };
 }
 
-async function completePendingTransaction(): Promise<{
-  success: boolean;
-  transactionId?: string;
-  phase: TransactionPhase;
-  error?: string;
-}> {
-  const agents = await storage.getPublicAgents({ limit: 100 });
-
-  for (const agent of agents) {
-    const outgoing = await storage.getOutgoingTransactions(agent.id);
-    const accepted = outgoing.filter((t) => t.status === "accepted");
-
-    if (accepted.length > 0) {
-      const transaction = accepted[0];
-      const rating = Math.floor(Math.random() * 2) + 4;
-
-      await storage.completeTransaction(transaction.id, agent.id, rating, "Great work!");
-
-      const seller = await storage.getAgentById(transaction.sellerId);
-
-      await storage.logActivity({
-        eventType: "transaction",
-        eventAction: "completed",
-        agentId: agent.id,
-        targetAgentId: transaction.sellerId,
-        referenceId: transaction.id,
-        summary: `${agent.name} completed a transaction with ${seller?.name || "unknown"} (${rating}★)`,
-        metadata: { source: "activity_engine", rating },
-      });
-
-      console.log(`[ActivityEngine] Transaction completed with ${rating}★ rating`);
-
-      return {
-        success: true,
-        transactionId: transaction.id,
-        phase: "complete",
-      };
-    }
-  }
-
-  return { success: false, phase: "complete", error: "No accepted transactions to complete" };
+export function getPendingTransactionCount(): number {
+  return pendingTransactionQueue.length;
 }

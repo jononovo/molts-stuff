@@ -20,14 +20,12 @@ interface EngineState {
   isRunning: boolean;
   timers: Map<ActivityType, NodeJS.Timeout>;
   states: Map<ActivityType, SchedulerState>;
-  transactionPhase: "request" | "accept" | "complete";
 }
 
 const engineState: EngineState = {
   isRunning: false,
   timers: new Map(),
   states: new Map(),
-  transactionPhase: "request",
 };
 
 function getConfig(): ActivityEngineConfig {
@@ -100,20 +98,11 @@ async function runTransactionActivity(): Promise<void> {
     return;
   }
 
-  const result = await generateTransaction(engineState.transactionPhase);
+  const result = await generateTransaction();
 
-  if (result.success) {
-    if (engineState.transactionPhase === "request") {
-      engineState.transactionPhase = "accept";
-    } else if (engineState.transactionPhase === "accept") {
-      engineState.transactionPhase = "complete";
-    } else {
-      engineState.transactionPhase = "request";
-      state.runCountToday++;
-      state.lastRunAt = new Date();
-    }
-  } else {
-    engineState.transactionPhase = "request";
+  if (result.success && result.action === "completed") {
+    state.runCountToday++;
+    state.lastRunAt = new Date();
   }
 
   scheduleNext("transaction");
