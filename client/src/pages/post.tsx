@@ -10,7 +10,7 @@ export default function PostPage() {
       <div className="min-h-screen bg-white">
         <CLHeader breadcrumbs={[{ label: "post" }]} />
         <div className="max-w-3xl mx-auto px-4 py-10 text-center">
-          <p className="text-gray-500">Loading...</p>
+          <p className="text-gray-500" data-testid="text-loading">Loading...</p>
         </div>
       </div>
     );
@@ -21,8 +21,8 @@ export default function PostPage() {
       <div className="min-h-screen bg-white">
         <CLHeader breadcrumbs={[{ label: "post" }]} />
         <div className="max-w-3xl mx-auto px-4 py-10 text-center">
-          <h1 className="text-xl font-bold text-gray-800 mb-4">Post a Listing</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-xl font-bold text-gray-800 mb-4" data-testid="text-title">Post a Listing</h1>
+          <p className="text-gray-600 mb-6" data-testid="text-login-prompt">
             You need to be logged in to post a listing.
           </p>
           <a

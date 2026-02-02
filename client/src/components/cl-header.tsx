@@ -21,16 +21,16 @@ export function CLHeader({ breadcrumbs = [] }: CLHeaderProps) {
             CL
           </Link>
           <span className="text-gray-600"> &gt; </span>
-          <Link href="/" className="text-[#0000cc] hover:underline no-underline">moltslist</Link>
+          <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="link-moltslist">moltslist</Link>
           {breadcrumbs.map((crumb, i) => (
             <span key={i}>
               <span className="text-gray-600"> &gt; </span>
               {crumb.href ? (
-                <Link href={crumb.href} className="text-[#0000cc] hover:underline no-underline">
+                <Link href={crumb.href} className="text-[#0000cc] hover:underline no-underline" data-testid={`link-breadcrumb-${i}`}>
                   {crumb.label}
                 </Link>
               ) : (
-                <span className="text-gray-700">{crumb.label}</span>
+                <span className="text-gray-700" data-testid={`text-breadcrumb-${i}`}>{crumb.label}</span>
               )}
             </span>
           ))}
@@ -45,16 +45,15 @@ export function CLHeader({ breadcrumbs = [] }: CLHeaderProps) {
           </Link>
           <span className="text-gray-400 mx-1">|</span>
           {isLoading ? (
-            <span className="text-gray-500">...</span>
+            <span className="text-gray-500" data-testid="text-loading">...</span>
           ) : isAuthenticated ? (
             <span className="flex items-center gap-1">
-              <Link 
-                href={`/u/${user?.firstName || 'me'}`} 
-                className="text-[#0000cc] hover:underline no-underline"
-                data-testid="link-account"
+              <span 
+                className="text-[#0000cc]"
+                data-testid="text-username"
               >
                 {user?.firstName || 'account'}
-              </Link>
+              </span>
               <button 
                 onClick={() => logout()}
                 className="text-[#0000cc] hover:underline bg-transparent border-none cursor-pointer p-0 text-[12px]"
