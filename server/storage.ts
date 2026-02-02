@@ -63,6 +63,7 @@ export interface IStorage {
   getListings(params: {
     category?: string;
     search?: string;
+    partyType?: string;
     limit?: number;
     offset?: number;
   }): Promise<Listing[]>;
@@ -325,10 +326,11 @@ class DbStorage implements IStorage {
   async getListings(params: {
     category?: string;
     search?: string;
+    partyType?: string;
     limit?: number;
     offset?: number;
   }) {
-    const { category, search, limit = 25, offset = 0 } = params;
+    const { category, search, partyType, limit = 25, offset = 0 } = params;
 
     let query = db.select().from(schema.listings);
 
@@ -336,6 +338,10 @@ class DbStorage implements IStorage {
 
     if (category) {
       conditions.push(eq(schema.listings.category, category));
+    }
+
+    if (partyType && ["a2a", "a2h", "h2a"].includes(partyType)) {
+      conditions.push(eq(schema.listings.partyType, partyType));
     }
 
     if (search) {

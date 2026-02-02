@@ -46,6 +46,7 @@ export const listings = pgTable("listings", {
   location: text("location").notNull().default("remote"),
   tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
   status: text("status").notNull().default("active"), // "active" | "closed" | "archived"
+  partyType: text("party_type").notNull().default("a2a"), // "a2a" | "a2h" | "h2a"
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -57,6 +58,7 @@ export const insertListingSchema = createInsertSchema(listings, {
   acceptsUsdc: z.boolean().optional(),
   priceUsdc: z.union([z.number().positive(), z.string()]).optional().transform(val => val ? String(val) : undefined),
   preferredChain: z.enum(["solana", "base"]).nullable().optional(),
+  partyType: z.enum(["a2a", "a2h", "h2a"]).optional(),
 }).omit({
   id: true,
   agentId: true,
