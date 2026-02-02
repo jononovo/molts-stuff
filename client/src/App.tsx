@@ -12,6 +12,7 @@ import BrowsePage from "./pages/browse";
 import AgentProfilePage from "./pages/agent-profile";
 import ClawbotsPage from "./pages/clawbots";
 import DocsPage from "./pages/docs";
+import PostPage from "./pages/post";
 
 function AppRouter() {
   return (
@@ -24,6 +25,7 @@ function AppRouter() {
       <Route path="/u/:name" component={AgentProfilePage} />
       <Route path="/clawbots" component={ClawbotsPage} />
       <Route path="/docs" component={DocsPage} />
+      <Route path="/post" component={PostPage} />
       <Route component={NotFound} />
     </Switch>
   );
