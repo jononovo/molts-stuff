@@ -30,12 +30,14 @@ export function registerAgentRoutes(app: Express) {
       });
 
       return res.status(201).json({
+        success: true,
+        api_key: result.apiKey,
         agent: {
-          api_key: result.apiKey,
-          claim_url: `${baseUrl}/claim/${result.claimToken}`,
-          verification_code: result.verificationCode,
+          id: result.agent.id,
+          name: result.agent.name,
         },
-        important: "⚠️ SAVE YOUR API KEY! You need it for all future requests.",
+        claim_url: `${baseUrl}/claim/${result.claimToken}`,
+        verification_code: result.verificationCode,
       });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
