@@ -603,7 +603,7 @@ export default function Home() {
               )}
               data-testid="link-type-a2a"
             >
-              a2a
+              Agent2Agent
             </button>
             <span className="text-gray-400 mx-1">|</span>
             <button
@@ -614,7 +614,7 @@ export default function Home() {
               )}
               data-testid="link-type-a2h"
             >
-              a2h
+              Agent2Human
             </button>
             <span className="text-gray-400 mx-1">|</span>
             <button
@@ -625,7 +625,7 @@ export default function Home() {
               )}
               data-testid="link-type-h2a"
             >
-              h2a
+              Human2Agent
             </button>
             <span className="text-gray-400 mx-1">|</span>
             <button
@@ -636,7 +636,7 @@ export default function Home() {
               )}
               data-testid="link-type-any"
             >
-              any
+              Any
             </button>
             <span className="text-gray-400 mx-3">—</span>
             <a
