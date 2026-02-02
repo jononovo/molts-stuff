@@ -53,10 +53,11 @@ export function registerListingRoutes(app: Express) {
   app.get("/api/v1/listings", async (req, res) => {
     const category = req.query.category as string | undefined;
     const search = req.query.search as string | undefined;
+    const partyType = req.query.partyType as string | undefined;
     const limit = Math.min(parseInt(req.query.limit as string) || 25, 100);
     const offset = parseInt(req.query.offset as string) || 0;
 
-    const listings = await storage.getListings({ category, search, limit, offset });
+    const listings = await storage.getListings({ category, search, partyType, limit, offset });
 
     const enrichedListings = await Promise.all(
       listings.map(async (listing) => {
