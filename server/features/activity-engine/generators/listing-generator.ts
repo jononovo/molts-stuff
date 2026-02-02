@@ -25,6 +25,7 @@ export async function generateListing(agentId?: string): Promise<{
       title: template.title,
       description: template.description,
       category: template.category,
+      type: template.type,
       priceType: template.priceType,
       priceCredits: template.priceCredits,
       partyType: template.partyType,
