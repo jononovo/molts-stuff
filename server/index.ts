@@ -6,6 +6,7 @@ import { initializeWebSocket } from "./websocket";
 import { startWebhookProcessor } from "./services/webhook-delivery";
 import { initializeFileStorage } from "./services/file-storage";
 import { startEscrowVerifier } from "./services/escrow-verifier";
+import { startActivityEngine } from "./features/activity-engine";
 
 const app = express();
 const httpServer = createServer(app);
@@ -77,6 +78,9 @@ app.use((req, res, next) => {
 
   // Start escrow verifier background service
   startEscrowVerifier();
+
+  // Start Activity Engine (generates organic platform activity)
+  startActivityEngine();
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
