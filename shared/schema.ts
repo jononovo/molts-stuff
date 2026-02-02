@@ -114,6 +114,16 @@ export const creditTransactions = pgTable("credit_transactions", {
 
 export type CreditTransaction = typeof creditTransactions.$inferSelect;
 
+export const shareClaims = pgTable("share_claims", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 255 }).notNull().references(() => agents.id, { onDelete: "cascade" }),
+  url: text("url").notNull(),
+  platform: text("platform").notNull(),
+  claimedAt: timestamp("claimed_at").notNull().defaultNow(),
+});
+
+export type ShareClaim = typeof shareClaims.$inferSelect;
+
 export const signups = pgTable("signups", {
   id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
   agentId: varchar("agent_id", { length: 255 }).references(() => agents.id),

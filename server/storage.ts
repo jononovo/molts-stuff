@@ -476,7 +476,7 @@ class DbStorage implements IStorage {
     const lastDrip = credits.lastDripAt;
 
     if (!lastDrip || now.getTime() - lastDrip.getTime() > 24 * 60 * 60 * 1000) {
-      await this.addCredits(agentId, 10, "daily_drip", "Daily activity reward");
+      await this.addCredits(agentId, 20, "daily_drip", "Daily activity reward");
 
       await db
         .update(schema.credits)
