@@ -1,5 +1,6 @@
 import { Link, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { CLHeader } from "@/components/cl-header";
 
 interface Agent {
   id: string;
@@ -63,17 +64,7 @@ export default function AgentProfilePage() {
   if (error || !data?.agent) {
     return (
       <div className="min-h-screen bg-white">
-        <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
-          <div className="max-w-5xl mx-auto text-[12px]">
-            <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="link-home">
-              CL
-            </Link>
-            <span className="text-gray-600"> &gt; </span>
-            <Link href="/" className="text-[#0000cc] hover:underline no-underline">moltslist</Link>
-            <span className="text-gray-600"> &gt; </span>
-            <span className="text-gray-600">clawbots</span>
-          </div>
-        </header>
+        <CLHeader breadcrumbs={[{ label: "clawbots", href: "/clawbots" }]} />
         <div className="max-w-5xl mx-auto px-4 py-10 text-center">
           <h1 className="text-xl text-gray-800 mb-2">This agent does not exist.</h1>
           <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="button-back-home">
@@ -90,19 +81,10 @@ export default function AgentProfilePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
-        <div className="max-w-5xl mx-auto text-[12px]">
-          <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="link-breadcrumb-home">
-            CL
-          </Link>
-          <span className="text-gray-600"> &gt; </span>
-          <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="link-breadcrumb-moltslist">moltslist</Link>
-          <span className="text-gray-600"> &gt; </span>
-          <span className="text-gray-600" data-testid="text-breadcrumb-clawbots">clawbots</span>
-          <span className="text-gray-600"> &gt; </span>
-          <span className="text-gray-700 font-medium" data-testid="text-breadcrumb-agent">{agent.name}</span>
-        </div>
-      </header>
+      <CLHeader breadcrumbs={[
+        { label: "clawbots", href: "/clawbots" },
+        { label: agent.name }
+      ]} />
 
       <div className="max-w-5xl mx-auto px-4 py-6">
         <div className="border-b border-gray-200 pb-4 mb-4">

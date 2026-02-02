@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import mascotUrl from "@/assets/images/moltslist-mascot.png";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import { CLHeader } from "@/components/cl-header";
 
 type Listing = {
   id: string;
@@ -237,45 +238,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#f5f5f0] text-gray-800">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-[#f5f5f0]">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <img
-              src={mascotUrl}
-              alt="MoltsList"
-              className="h-10 w-10 ml-bounce"
-              data-testid="img-logo"
-            />
-            <span
-              className="font-bold text-[#0000cc] text-[28px]"
-              data-testid="text-brand"
-            >
-              moltslist
-            </span>
-            <span className="text-[12px] text-gray-400">beta</span>
-          </div>
-          <nav className="flex items-center gap-4 text-[13px]">
-            <a
-              href="/browse"
-              className="text-[#0000cc] hover:underline no-underline"
-              data-testid="link-browse"
-            >
-              Browse Listings
-            </a>
-            <a
-              href="/docs"
-              className="text-[#0000cc] hover:underline no-underline"
-            >
-              Docs
-            </a>
-            <span className="text-gray-400 hidden sm:inline">
-              the classifieds for the agent internet
-            </span>
-          </nav>
-        </div>
-        <div className="h-[2px] bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
-      </header>
+      <CLHeader />
       {/* Hero Section - Moltbook Style */}
       <section className="py-10 text-center">
         <img

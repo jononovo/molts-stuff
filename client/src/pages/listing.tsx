@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
+import { CLHeader } from "@/components/cl-header";
 
 interface Comment {
   id: string;
@@ -175,14 +176,7 @@ export default function ListingPage() {
   if (error || !listing) {
     return (
       <div className="min-h-screen bg-white">
-        <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
-          <div className="max-w-5xl mx-auto">
-            <Link href="/" className="text-[#0000cc] hover:underline no-underline text-[12px]" data-testid="link-home">
-              CL
-            </Link>
-            <span className="text-gray-500 text-[12px]"> &gt; moltslist</span>
-          </div>
-        </header>
+        <CLHeader />
         <div className="max-w-5xl mx-auto px-4 py-10 text-center">
           <h1 className="text-xl text-gray-800 mb-2">This listing has been removed or does not exist.</h1>
           <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="button-back-home">
@@ -227,38 +221,29 @@ export default function ListingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="text-[12px]">
-            <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="link-home">
-              CL
-            </Link>
-            <span className="text-gray-600"> &gt; </span>
-            <Link href="/" className="text-[#0000cc] hover:underline no-underline">moltslist</Link>
-            <span className="text-gray-600"> &gt; </span>
-            <Link href={`/browse/${listing.category}`} className="text-[#0000cc] hover:underline no-underline">{listing.category}</Link>
-          </div>
-          <div className="flex items-center gap-3 text-[12px]">
-            {prevListing ? (
-              <Link href={`/listings/${prevListing.id}`} className="text-[#0000cc] hover:underline no-underline flex items-center gap-1" data-testid="link-prev">
-                <ChevronLeft className="w-3 h-3" /> prev
-              </Link>
-            ) : (
-              <span className="text-gray-400 flex items-center gap-1"><ChevronLeft className="w-3 h-3" /> prev</span>
-            )}
-            <Link href={`/browse/${listing.category}`} className="text-[#0000cc] hover:underline no-underline flex items-center gap-1" data-testid="link-up">
-              <ChevronUp className="w-3 h-3" /> up
-            </Link>
-            {nextListing ? (
-              <Link href={`/listings/${nextListing.id}`} className="text-[#0000cc] hover:underline no-underline flex items-center gap-1" data-testid="link-next">
-                next <ChevronRight className="w-3 h-3" />
-              </Link>
-            ) : (
-              <span className="text-gray-400 flex items-center gap-1">next <ChevronRight className="w-3 h-3" /></span>
-            )}
-          </div>
-        </div>
-      </header>
+      <CLHeader breadcrumbs={[
+        { label: listing.category, href: `/browse/${listing.category}` }
+      ]} />
+
+      <div className="max-w-5xl mx-auto px-4 py-2 flex justify-end gap-3 text-[12px] border-b border-gray-100">
+        {prevListing ? (
+          <Link href={`/listings/${prevListing.id}`} className="text-[#0000cc] hover:underline no-underline flex items-center gap-1" data-testid="link-prev">
+            <ChevronLeft className="w-3 h-3" /> prev
+          </Link>
+        ) : (
+          <span className="text-gray-400 flex items-center gap-1"><ChevronLeft className="w-3 h-3" /> prev</span>
+        )}
+        <Link href={`/browse/${listing.category}`} className="text-[#0000cc] hover:underline no-underline flex items-center gap-1" data-testid="link-up">
+          <ChevronUp className="w-3 h-3" /> up
+        </Link>
+        {nextListing ? (
+          <Link href={`/listings/${nextListing.id}`} className="text-[#0000cc] hover:underline no-underline flex items-center gap-1" data-testid="link-next">
+            next <ChevronRight className="w-3 h-3" />
+          </Link>
+        ) : (
+          <span className="text-gray-400 flex items-center gap-1">next <ChevronRight className="w-3 h-3" /></span>
+        )}
+      </div>
 
       <main className="max-w-5xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between mb-4 text-[12px]">

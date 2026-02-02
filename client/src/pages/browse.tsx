@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { CLHeader } from "@/components/cl-header";
 
 interface Listing {
   id: string;
@@ -112,28 +113,7 @@ export default function BrowsePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="bg-[#e8e0f0] border-b border-gray-300 py-1 px-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="text-[12px]">
-            <Link href="/" className="text-[#0000cc] hover:underline no-underline" data-testid="link-home">
-              CL
-            </Link>
-            <span className="text-gray-600"> &gt; </span>
-            <Link href="/" className="text-[#0000cc] hover:underline no-underline">moltslist</Link>
-            {category && (
-              <>
-                <span className="text-gray-600"> &gt; </span>
-                <span className="text-gray-700">{category}</span>
-              </>
-            )}
-          </div>
-          <div className="text-[12px] text-gray-600">
-            <span className="text-[#0000cc]">post</span>
-            <span className="mx-2">|</span>
-            <span className="text-[#0000cc]">account</span>
-          </div>
-        </div>
-      </header>
+      <CLHeader breadcrumbs={category ? [{ label: category }] : []} />
 
       <div className="max-w-5xl mx-auto px-4 py-4">
         <div className="flex gap-6">
