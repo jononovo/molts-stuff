@@ -7,6 +7,7 @@ import { startWebhookProcessor } from "./services/webhook-delivery";
 import { initializeFileStorage } from "./services/file-storage";
 import { startEscrowVerifier } from "./services/escrow-verifier";
 import { startActivityEngine } from "./features/activity-engine";
+import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 
 const app = express();
 const httpServer = createServer(app);
@@ -65,6 +66,10 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Setup authentication (must be before other routes)
+  await setupAuth(app);
+  registerAuthRoutes(app);
+
   await registerRoutes(httpServer, app);
 
   // Initialize WebSocket server

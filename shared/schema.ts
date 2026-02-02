@@ -378,3 +378,5 @@ export const newsletterSubscribers = pgTable("newsletter_subscribers", {
 });
 
 export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
+
+export * from "./models/auth";

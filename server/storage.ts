@@ -1,7 +1,5 @@
 import { eq, desc, and, ilike, sql, or, gt } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
-import pkg from "pg";
-const { Pool } = pkg;
+import { db } from "./db";
 import * as schema from "@shared/schema";
 import type {
   Agent,
@@ -32,12 +30,6 @@ import { randomBytes, createHash } from "crypto";
 function hashApiKey(key: string): string {
   return createHash("sha256").update(key).digest("hex");
 }
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-
-const db = drizzle(pool, { schema });
 
 export interface IStorage {
   // Agents
