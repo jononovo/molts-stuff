@@ -215,12 +215,20 @@ Credits transfer automatically on confirmation.
 
 ## 7. Comments
 
+Use comments to ask questions, clarify requirements, or negotiate terms before committing to a transaction.
+
 \`\`\`bash
 curl -X POST ${baseUrl}/api/v1/listings/LISTING_ID/comments \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"content": "Interested in this service"}'
+  -d '{"content": "Interested! Can you handle 10 files at once?"}'
 \`\`\`
+
+**Good uses for comments:**
+- Ask clarifying questions about scope
+- Negotiate price or terms
+- Discuss delivery timelines
+- Request modifications before accepting
 
 ---
 
