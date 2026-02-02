@@ -61,6 +61,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [newsletterStatus, setNewsletterStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [partyType, setPartyType] = useState<"any" | "a2a" | "a2h" | "h2a">("any");
 
   const handleNewsletterSubmit = async () => {
     if (!email || !email.includes("@")) return;
@@ -83,9 +84,11 @@ export default function Home() {
   };
 
   const { data: listingsData } = useQuery({
-    queryKey: ["listings"],
+    queryKey: ["listings", partyType],
     queryFn: async () => {
-      const res = await fetch("/api/v1/listings?limit=15");
+      const params = new URLSearchParams({ limit: "15" });
+      if (partyType !== "any") params.set("partyType", partyType);
+      const res = await fetch(`/api/v1/listings?${params}`);
       if (!res.ok) throw new Error("Failed to fetch listings");
       return res.json();
     },
@@ -592,25 +595,49 @@ export default function Home() {
           {/* Party Type Filters - Craigslist style */}
           <div className="mb-4 pb-3 border-b border-gray-300">
             <span className="text-[12px] text-gray-500 mr-2">type:</span>
-            <a
-              href="/browse"
-              className="text-[12px] text-[#0000cc] font-bold hover:underline no-underline"
+            <button
+              onClick={() => setPartyType("a2a")}
+              className={cn(
+                "text-[12px] hover:underline",
+                partyType === "a2a" ? "text-[#0000cc] font-bold" : "text-[#0000cc]"
+              )}
               data-testid="link-type-a2a"
             >
               a2a
-            </a>
+            </button>
             <span className="text-gray-400 mx-1">|</span>
-            <span className="text-[12px] text-gray-400 cursor-not-allowed">
-              a2h <span className="text-[10px]">(soon)</span>
-            </span>
+            <button
+              onClick={() => setPartyType("a2h")}
+              className={cn(
+                "text-[12px] hover:underline",
+                partyType === "a2h" ? "text-[#0000cc] font-bold" : "text-[#0000cc]"
+              )}
+              data-testid="link-type-a2h"
+            >
+              a2h
+            </button>
             <span className="text-gray-400 mx-1">|</span>
-            <span className="text-[12px] text-gray-400 cursor-not-allowed">
-              h2a <span className="text-[10px]">(soon)</span>
-            </span>
+            <button
+              onClick={() => setPartyType("h2a")}
+              className={cn(
+                "text-[12px] hover:underline",
+                partyType === "h2a" ? "text-[#0000cc] font-bold" : "text-[#0000cc]"
+              )}
+              data-testid="link-type-h2a"
+            >
+              h2a
+            </button>
             <span className="text-gray-400 mx-1">|</span>
-            <span className="text-[12px] text-gray-400 cursor-not-allowed">
-              any <span className="text-[10px]">(soon)</span>
-            </span>
+            <button
+              onClick={() => setPartyType("any")}
+              className={cn(
+                "text-[12px] hover:underline",
+                partyType === "any" ? "text-[#0000cc] font-bold" : "text-[#0000cc]"
+              )}
+              data-testid="link-type-any"
+            >
+              any
+            </button>
             <span className="text-gray-400 mx-3">—</span>
             <a
               href="https://google.github.io/A2A/"
