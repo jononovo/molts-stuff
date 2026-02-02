@@ -29,9 +29,12 @@ export default function PostPage() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("services");
   const [type, setType] = useState<"offer" | "request">("offer");
-  const [priceType, setPriceType] = useState<"free" | "credits" | "swap">("credits");
+  const [priceType, setPriceType] = useState<"free" | "credits" | "swap" | "usdc">("credits");
   const [priceCredits, setPriceCredits] = useState("");
+  const [priceUsdc, setPriceUsdc] = useState("");
+  const [preferredChain, setPreferredChain] = useState<"solana" | "base" | "">(""); 
   const [partyType, setPartyType] = useState("a2h");
+  const [location, setLocation] = useState("remote");
   const [tags, setTags] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -43,11 +46,16 @@ export default function PostPage() {
         credentials: "include",
         body: JSON.stringify(data),
       });
+      const json = await res.json();
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to create listing");
+        let errorMsg = json.error || "Failed to create listing";
+        if (json.details && Array.isArray(json.details)) {
+          const fieldErrors = json.details.map((d: any) => `${d.path?.join(".")}: ${d.message}`).join("; ");
+          errorMsg = `${errorMsg} - ${fieldErrors}`;
+        }
+        throw new Error(errorMsg);
       }
-      return res.json();
+      return json;
     },
     onSuccess: (data) => {
       navigate(`/listings/${data.listing.id}`);
@@ -65,13 +73,31 @@ export default function PostPage() {
       setError("Title is required");
       return;
     }
+    if (title.trim().length < 5) {
+      setError("Title must be at least 5 characters");
+      return;
+    }
     if (!description.trim()) {
       setError("Description is required");
       return;
     }
-    if (priceType === "credits" && !priceCredits) {
-      setError("Price in credits is required when price type is credits");
+    if (description.trim().length < 20) {
+      setError("Description must be at least 20 characters");
       return;
+    }
+    if (priceType === "credits") {
+      const credits = parseInt(priceCredits);
+      if (!priceCredits || isNaN(credits) || credits < 1) {
+        setError("Price must be at least 1 credit");
+        return;
+      }
+    }
+    if (priceType === "usdc") {
+      const usdc = parseFloat(priceUsdc);
+      if (!priceUsdc || isNaN(usdc) || usdc <= 0) {
+        setError("USDC price must be greater than 0");
+        return;
+      }
     }
 
     const tagArray = tags
@@ -79,16 +105,34 @@ export default function PostPage() {
       .map((t) => t.trim())
       .filter((t) => t.length > 0);
 
-    createListing.mutate({
+    if (tagArray.length > 10) {
+      setError("Maximum 10 tags allowed");
+      return;
+    }
+
+    const payload: any = {
       title: title.trim(),
       description: description.trim(),
       category,
       type,
       priceType,
-      priceCredits: priceType === "credits" ? parseInt(priceCredits) : null,
       partyType,
+      location: location.trim() || "remote",
       tags: tagArray,
-    });
+    };
+
+    if (priceType === "credits") {
+      payload.priceCredits = parseInt(priceCredits);
+    }
+    if (priceType === "usdc") {
+      payload.acceptsUsdc = true;
+      payload.priceUsdc = parseFloat(priceUsdc);
+      if (preferredChain) {
+        payload.preferredChain = preferredChain;
+      }
+    }
+
+    createListing.mutate(payload);
   };
 
   if (authLoading) {
@@ -236,39 +280,88 @@ export default function PostPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-[13px] font-medium text-gray-700 mb-1">
+              Price Type
+            </label>
+            <select
+              value={priceType}
+              onChange={(e) => setPriceType(e.target.value as "free" | "credits" | "swap" | "usdc")}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#0000cc]"
+              data-testid="select-price-type"
+            >
+              <option value="free">Free</option>
+              <option value="credits">Credits (platform currency)</option>
+              <option value="swap">Swap (trade for something)</option>
+              <option value="usdc">USDC (blockchain escrow)</option>
+            </select>
+          </div>
+
+          {priceType === "credits" && (
             <div>
               <label className="block text-[13px] font-medium text-gray-700 mb-1">
-                Price Type
+                Price (credits) <span className="text-red-500">*</span>
               </label>
-              <select
-                value={priceType}
-                onChange={(e) => setPriceType(e.target.value as "free" | "credits" | "swap")}
+              <input
+                type="number"
+                min="1"
+                value={priceCredits}
+                onChange={(e) => setPriceCredits(e.target.value)}
+                placeholder="e.g., 50"
                 className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#0000cc]"
-                data-testid="select-price-type"
-              >
-                <option value="free">Free</option>
-                <option value="credits">Credits</option>
-                <option value="swap">Swap (trade for something)</option>
-              </select>
+                data-testid="input-price-credits"
+              />
             </div>
+          )}
 
-            {priceType === "credits" && (
+          {priceType === "usdc" && (
+            <div className="space-y-4 p-4 bg-gray-50 rounded border border-gray-200">
               <div>
                 <label className="block text-[13px] font-medium text-gray-700 mb-1">
-                  Price (credits) <span className="text-red-500">*</span>
+                  Price (USDC) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
-                  min="1"
-                  value={priceCredits}
-                  onChange={(e) => setPriceCredits(e.target.value)}
-                  placeholder="e.g., 50"
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#0000cc]"
-                  data-testid="input-price"
+                  min="0.01"
+                  step="0.01"
+                  value={priceUsdc}
+                  onChange={(e) => setPriceUsdc(e.target.value)}
+                  placeholder="e.g., 25.00"
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#0000cc] bg-white"
+                  data-testid="input-price-usdc"
                 />
               </div>
-            )}
+              <div>
+                <label className="block text-[13px] font-medium text-gray-700 mb-1">
+                  Preferred Chain (optional)
+                </label>
+                <select
+                  value={preferredChain}
+                  onChange={(e) => setPreferredChain(e.target.value as "solana" | "base" | "")}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#0000cc] bg-white"
+                  data-testid="select-chain"
+                >
+                  <option value="">Any chain</option>
+                  <option value="solana">Solana</option>
+                  <option value="base">Base</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-[13px] font-medium text-gray-700 mb-1">
+              Location
+            </label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="remote"
+              className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#0000cc]"
+              data-testid="input-location"
+            />
+            <p className="text-[11px] text-gray-400 mt-1">Default: remote</p>
           </div>
 
           <div>
@@ -283,7 +376,7 @@ export default function PostPage() {
               className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#0000cc]"
               data-testid="input-tags"
             />
-            <p className="text-[11px] text-gray-400 mt-1">Separate multiple tags with commas</p>
+            <p className="text-[11px] text-gray-400 mt-1">Separate multiple tags with commas (max 10)</p>
           </div>
 
           <div className="pt-4 border-t border-gray-100">
