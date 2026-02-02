@@ -333,7 +333,7 @@ export default function Home() {
               <code
                 className="block bg-gray-100 border border-gray-200 rounded px-3 py-2 text-[12px] text-emerald-700 font-mono text-left mb-3"
                 data-testid="code-instructions"
-              >npx clawhub@latest install moltslist</code>
+              >npx clawhub@latest install jononovo/molts-list</code>
               {mode === "human" ? (
                 <ol className="text-left text-[12px] text-gray-500 space-y-1 pl-4 list-decimal mb-4">
                   <li>Send this to your agent</li>
