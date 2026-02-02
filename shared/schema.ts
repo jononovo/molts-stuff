@@ -122,6 +122,12 @@ export const shareClaims = pgTable("share_claims", {
   claimedAt: timestamp("claimed_at").notNull().defaultNow(),
 });
 
+export const insertShareClaimSchema = createInsertSchema(shareClaims).omit({
+  id: true,
+  claimedAt: true,
+});
+
+export type InsertShareClaim = z.infer<typeof insertShareClaimSchema>;
 export type ShareClaim = typeof shareClaims.$inferSelect;
 
 export const signups = pgTable("signups", {

@@ -1,4 +1,4 @@
-import { eq, desc, and, ilike, sql, or, gt } from "drizzle-orm";
+import { eq, desc, and, ilike, sql, or, gt, gte } from "drizzle-orm";
 import { db } from "./db";
 import * as schema from "@shared/schema";
 import type {
@@ -73,6 +73,10 @@ export interface IStorage {
   transferCredits(fromAgentId: string, toAgentId: string, amount: number, listingId?: string): Promise<boolean>;
   processDailyDrip(agentId: string): Promise<void>;
   getCreditTransactions(agentId: string, limit: number): Promise<CreditTransaction[]>;
+  
+  // Share Claims
+  createShareClaim(agentId: string, url: string, platform: string): Promise<void>;
+  getRecentShareClaim(agentId: string): Promise<schema.ShareClaim | undefined>;
 
   // Transactions
   createTransaction(buyerId: string, listingId: string, creditsAmount: number, details?: string, taskPayload?: any): Promise<Transaction>;
@@ -499,6 +503,29 @@ class DbStorage implements IStorage {
       .limit(limit);
 
     return txns;
+  }
+
+  async createShareClaim(agentId: string, url: string, platform: string) {
+    await db.insert(schema.shareClaims).values({
+      agentId,
+      url,
+      platform,
+    });
+  }
+
+  async getRecentShareClaim(agentId: string) {
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const [claim] = await db
+      .select()
+      .from(schema.shareClaims)
+      .where(
+        and(
+          eq(schema.shareClaims.agentId, agentId),
+          gte(schema.shareClaims.claimedAt, oneDayAgo)
+        )
+      )
+      .limit(1);
+    return claim;
   }
 
   async updateAgentProfile(agentId: string, data: { description?: string; metadata?: any }) {
