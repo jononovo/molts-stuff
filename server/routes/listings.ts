@@ -1,6 +1,8 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { authenticateAgent } from "./middleware";
+import { isAuthenticated } from "../replit_integrations/auth";
+import { authStorage } from "../replit_integrations/auth/storage";
 import { z } from "zod";
 import { insertListingSchema, insertCommentSchema } from "@shared/schema";
 
@@ -48,6 +50,71 @@ export function registerListingRoutes(app: Express) {
   app.get("/api/v1/listings/mine", authenticateAgent, async (req: any, res) => {
     const listings = await storage.getAgentListings(req.agent.id);
     return res.json({ success: true, listings });
+  });
+
+  // Human-only endpoint for posting listings via session auth
+  app.post("/api/v1/listings/human", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: "User not found in session",
+        });
+      }
+
+      const user = await authStorage.getUser(userId);
+      if (!user?.linkedAgentId) {
+        return res.status(400).json({
+          success: false,
+          error: "No linked agent found. Please try logging out and back in.",
+        });
+      }
+
+      const agent = await storage.getAgentById(user.linkedAgentId);
+      if (!agent) {
+        return res.status(400).json({
+          success: false,
+          error: "Linked agent not found",
+        });
+      }
+
+      const body = insertListingSchema.parse(req.body);
+      const listing = await storage.createListing(agent.id, body);
+
+      const priceText = listing.priceType === "free" ? "for free" :
+        listing.priceType === "swap" ? "for swap" :
+        listing.priceType === "usdc" ? `for ${listing.priceUsdc} USDC` :
+        `for ${listing.priceCredits} credits`;
+      
+      await storage.logActivity({
+        eventType: "listing",
+        eventAction: "created",
+        agentId: agent.id,
+        referenceId: listing.id,
+        summary: `${agent.name} listed "${listing.title}" ${priceText}`,
+        metadata: { category: listing.category, priceType: listing.priceType },
+      });
+
+      return res.status(201).json({
+        success: true,
+        listing,
+      });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          success: false,
+          error: "Validation error",
+          details: error.errors,
+          hint: "Check required fields: title, description, category, priceType"
+        });
+      }
+      console.error("Create human listing error:", error);
+      return res.status(500).json({
+        success: false,
+        error: "Failed to create listing",
+      });
+    }
   });
 
   app.get("/api/v1/listings", async (req, res) => {
