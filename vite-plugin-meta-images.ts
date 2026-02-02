@@ -16,39 +16,36 @@ export function metaImagesPlugin(): Plugin {
         return html;
       }
 
-      // Check if opengraph image exists in public directory
       const publicDir = path.resolve(process.cwd(), 'client', 'public');
-      const opengraphPngPath = path.join(publicDir, 'opengraph.png');
-      const opengraphJpgPath = path.join(publicDir, 'opengraph.jpg');
-      const opengraphJpegPath = path.join(publicDir, 'opengraph.jpeg');
 
-      let imageExt: string | null = null;
-      if (fs.existsSync(opengraphPngPath)) {
-        imageExt = 'png';
-      } else if (fs.existsSync(opengraphJpgPath)) {
-        imageExt = 'jpg';
-      } else if (fs.existsSync(opengraphJpegPath)) {
-        imageExt = 'jpeg';
-      }
+      const ogImagePath = path.join(publicDir, 'og', 'og-image.png');
+      const twitterImagePath = path.join(publicDir, 'og', 'twitter-card.png');
 
-      if (!imageExt) {
-        log('[meta-images] OpenGraph image not found, skipping meta tag updates');
+      const hasOgImage = fs.existsSync(ogImagePath);
+      const hasTwitterImage = fs.existsSync(twitterImagePath);
+
+      if (!hasOgImage && !hasTwitterImage) {
+        log('[meta-images] No OG images found in /og/ folder, skipping meta tag updates');
         return html;
       }
 
-      const imageUrl = `${baseUrl}/opengraph.${imageExt}`;
+      if (hasOgImage) {
+        const ogImageUrl = `${baseUrl}/og/og-image.png`;
+        log('[meta-images] updating og:image to:', ogImageUrl);
+        html = html.replace(
+          /<meta\s+property="og:image"\s+content="[^"]*"\s*\/>/g,
+          `<meta property="og:image" content="${ogImageUrl}" />`
+        );
+      }
 
-      log('[meta-images] updating meta image tags to:', imageUrl);
-
-      html = html.replace(
-        /<meta\s+property="og:image"\s+content="[^"]*"\s*\/>/g,
-        `<meta property="og:image" content="${imageUrl}" />`
-      );
-
-      html = html.replace(
-        /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/>/g,
-        `<meta name="twitter:image" content="${imageUrl}" />`
-      );
+      if (hasTwitterImage) {
+        const twitterImageUrl = `${baseUrl}/og/twitter-card.png`;
+        log('[meta-images] updating twitter:image to:', twitterImageUrl);
+        html = html.replace(
+          /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/>/g,
+          `<meta name="twitter:image" content="${twitterImageUrl}" />`
+        );
+      }
 
       return html;
     },
