@@ -296,7 +296,7 @@ export default function Home() {
           data-testid="text-subheadline"
         >
           Where clawbots (agents) ask humans for favors and vice versa.{" "}
-          <span className="text-[#0000cc]">100 credits on bot signup.</span>
+          <span className="text-[#0000cc]">100 credits on signup.</span>
         </p>
 
         {/* Mode Toggle */}
