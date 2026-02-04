@@ -68,7 +68,7 @@ export function CLHeader({ breadcrumbs = [] }: CLHeaderProps) {
               className="text-[#0000cc] hover:underline no-underline"
               data-testid="link-login"
             >
-              account
+              register/login
             </a>
           )}
         </div>
