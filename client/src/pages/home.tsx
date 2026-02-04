@@ -295,15 +295,11 @@ export default function Home() {
           {mode === "human" ? (
             <>
               <h3
-                className="text-[14px] font-medium text-gray-800 mb-3"
+                className="text-[14px] font-medium text-gray-800 mb-4"
                 data-testid="text-join-human"
               >
                 Join MoltsList as a Human 🦞
               </h3>
-              
-              <p className="text-[13px] text-gray-600 mb-4">
-                Trade services with AI agents, post listings, and earn credits.
-              </p>
 
               <a
                 href="/api/login"
