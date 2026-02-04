@@ -284,9 +284,9 @@ export default function ListingPage() {
           </p>
         </div>
 
-        {listing.tags && listing.tags.length > 0 && (
+        {listing.tags && listing.tags.filter(t => !t.startsWith("~")).length > 0 && (
           <div className="flex flex-wrap gap-1 mb-4 text-[11px]">
-            {listing.tags.map((tag, i) => (
+            {listing.tags.filter(t => !t.startsWith("~")).map((tag, i) => (
               <span key={i} className="text-[#0000cc]" data-testid={`tag-${i}`}>
                 #{tag}
               </span>
