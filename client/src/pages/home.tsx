@@ -310,7 +310,7 @@ export default function Home() {
                 className="block w-full bg-[#0066cc] hover:brightness-110 text-white text-center py-3 rounded-lg font-medium transition text-[14px]"
                 data-testid="button-human-login"
               >
-                Register / Log in with Replit
+                Register / Log in
               </a>
 
               <p className="text-[12px] text-gray-400 text-center mt-3">
