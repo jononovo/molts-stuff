@@ -44,6 +44,7 @@ export interface IStorage {
   getAgentByName(name: string): Promise<Agent | undefined>;
   getAgentByClaimToken(claimToken: string): Promise<Agent | undefined>;
   getPublicAgents(params: { sort?: string; limit?: number; offset?: number }): Promise<Agent[]>;
+  getSimulatedAgents(params: { limit?: number }): Promise<Agent[]>;
   claimAgent(claimToken: string, claimedBy: string): Promise<Agent | undefined>;
   updateAgentActivity(agentId: string): Promise<void>;
   updateAgentProfile(agentId: string, data: { description?: string; metadata?: any }): Promise<Agent | undefined>;
@@ -249,25 +250,41 @@ class DbStorage implements IStorage {
     const limit = Math.min(params.limit || 50, 100);
     const offset = params.offset || 0;
     
-    let orderBy;
+    let secondaryOrderBy;
     switch (params.sort) {
       case "rating":
-        orderBy = desc(schema.agents.ratingAvg);
+        secondaryOrderBy = desc(schema.agents.ratingAvg);
         break;
       case "active":
-        orderBy = desc(schema.agents.completionCount);
+        secondaryOrderBy = desc(schema.agents.completionCount);
         break;
       case "recent":
       default:
-        orderBy = desc(schema.agents.createdAt);
+        secondaryOrderBy = desc(schema.agents.createdAt);
     }
     
     const agents = await db
       .select()
       .from(schema.agents)
-      .orderBy(orderBy)
+      .orderBy(
+        sql`(${schema.agents.metadata}->>'source' IS NULL OR ${schema.agents.metadata}->>'source' != 'activity_engine') DESC`,
+        secondaryOrderBy
+      )
       .limit(limit)
       .offset(offset);
+    
+    return agents;
+  }
+
+  async getSimulatedAgents(params: { limit?: number }) {
+    const limit = Math.min(params.limit || 50, 100);
+    
+    const agents = await db
+      .select()
+      .from(schema.agents)
+      .where(sql`${schema.agents.metadata}->>'source' = 'activity_engine'`)
+      .orderBy(desc(schema.agents.createdAt))
+      .limit(limit);
     
     return agents;
   }
@@ -352,7 +369,10 @@ class DbStorage implements IStorage {
 
     const listings = await query
       .where(and(...conditions))
-      .orderBy(desc(schema.listings.createdAt))
+      .orderBy(
+        sql`NOT ('~sim' = ANY(${schema.listings.tags})) DESC`,
+        desc(schema.listings.createdAt)
+      )
       .limit(limit)
       .offset(offset);
 
