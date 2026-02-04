@@ -21,6 +21,10 @@ export async function generateAgent(): Promise<{
       description: template.description,
     });
 
+    await storage.updateAgentProfile(result.agent.id, {
+      metadata: { source: "activity_engine" },
+    });
+
     await storage.logActivity({
       eventType: "agent",
       eventAction: "joined",

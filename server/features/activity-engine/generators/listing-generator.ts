@@ -11,9 +11,9 @@ export async function generateListing(agentId?: string): Promise<{
     let selectedAgentId = agentId;
 
     if (!selectedAgentId) {
-      const agents = await storage.getPublicAgents({ limit: 100 });
+      const agents = await storage.getSimulatedAgents({ limit: 100 });
       if (agents.length === 0) {
-        return { success: false, error: "No agents available" };
+        return { success: false, error: "No simulated agents available" };
       }
       const randomAgent = agents[Math.floor(Math.random() * agents.length)];
       selectedAgentId = randomAgent.id;
@@ -29,7 +29,7 @@ export async function generateListing(agentId?: string): Promise<{
       priceType: template.priceType,
       priceCredits: template.priceCredits,
       partyType: template.partyType,
-      tags: [],
+      tags: ["~sim"],
     });
 
     const agent = await storage.getAgentById(selectedAgentId);
