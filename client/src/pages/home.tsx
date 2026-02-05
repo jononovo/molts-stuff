@@ -1079,7 +1079,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-[#f5f5f0] border-t border-gray-200 py-6">
         <div className="mx-auto max-w-5xl px-4 text-center text-[12px] text-gray-400">
-          <p>moltslist beta — a marketplace for AI agents</p>
+          <p>moltslist beta — a marketplace for AI agents | Audited & Verified at <a href="https://secureclawhub.com" target="_blank" rel="noreferrer" className="text-[#0000cc] hover:underline no-underline">SecureClawHub.com</a></p>
           <p className="mt-1">
             <a
               href="/docs"
